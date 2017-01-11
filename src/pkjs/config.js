@@ -1,11 +1,11 @@
 module.exports = [
     {
         "type": "heading",
-        "defaultValue": "Planets Configuration"
+        "defaultValue": "Luminosity Configuration"
     },
     {
         "type": "text",
-        "defaultValue": "Digital or analog watchface that shows the visible planets, and a 24 hour weather forecast."
+        "defaultValue": "Digital or analog watchface that shows a 24 hour weather forecast."
     },
     {
         "type": "section",
@@ -32,17 +32,42 @@ module.exports = [
             {
                 "type": "toggle",
                 "messageKey": "CFG_CELSIUS",
-                "defaultValue": true,
+                "defaultValue": false,
                 "label": "Use Celsius"
             },
             {
                 "type": "input",
                 "messageKey": "CFG_DARKSKY_KEY",
-                "defaultValue": "f7409454bf25dc25fd6e245771b1e484",
+                "defaultValue": "09a66d34ccc4feb9a2b56e3c6cfee527",
                 "label": "Dark Sky API Key (please use your own, if you can)",
             }
         ]
     }, 
+    {
+        "type":"section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Location"
+            },
+            {
+                "type": "toggle",
+                "messageKey": "CFG_OVERRIDE_LOC",
+                "defaultValue": false,
+                "label": "Override detected Location"
+            },
+            {
+                "type": "input",
+                "messageKey": "CFG_LAT",
+                "label": "Lattitude"
+            },
+            {
+                "type": "input",
+                "messageKey": "CFG_LON",
+                "label": "Longitude"
+            }
+        ]
+    },
     {
         "type": "submit",
         "defaultValue": "Save Settings"

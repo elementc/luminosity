@@ -9,12 +9,17 @@
 #define COLOR_24H_LINES GColorBlack
 #define COLOR_24H_CURRENT GColorRed
 
-#define COLOR_NIGHT GColorIndigo
+#define COLOR_NIGHT GColorLavenderIndigo
+#define COLOR_NIGHT_PARTLY GColorIndigo
+#define COLOR_NIGHT_CLOUDY GColorDarkGray
 #define COLOR_DAY GColorIcterine
+#define COLOR_DAY_PARTLY GColorPastelYellow
+#define COLOR_DAY_CLOUDY GColorLightGray
 
 #define COLOR_CLOUDY GColorDarkGray
 #define COLOR_RAINY GColorBlue
 #define COLOR_SNOWY GColorWhite
+#define COLOR_SLEETY GColorCeleste
 #define COLOR_PARTLY GColorLightGray
 
 #define TRI_W 8
@@ -39,8 +44,12 @@ static int s_battery_level;
 static bool s_charging;
 
 /* Weather */
-static TextLayer *s_temp_layer;;
-static char forecast_str[25];
+static TextLayer *s_temp_layer;
+static char forecast_clouds_str[25];
+static char forecast_precip_type_str[25];
+static char forecast_precip_intensity_str[25];
+static char forecast_temp_str[25];
+static bool s_weather_ready;
 static Layer *s_forecast_layer;
 static BitmapLayer *s_conditions_layer;
 
@@ -62,7 +71,6 @@ static GBitmap *s_bt_icon_bitmap;
 /* Space */
 static int s_sunset, s_sunrise;
 static bool s_space_ready;
-
 static Layer *s_sky_layer;
 
 static char* condition_icons[] = {
@@ -100,7 +108,7 @@ static void prv_update_display() {
 
 // Initialize the default settings
 static void prv_default_settings() {
-    settings.Analog = true;
+    settings.Analog = false;
 }
 
 // Read settings from persistent storage
@@ -220,7 +228,6 @@ static void health_handler(HealthEventType event, void *context) {
                     snprintf(steps_str, 12, "%d", steps);
                 }
                 text_layer_set_text(s_steps_layer, steps_str);
-                //layer_mark_dirty(s_steps_layer);
 
                 APP_LOG(APP_LOG_LEVEL_DEBUG, "steps: %s ", steps_str);
             } else {
@@ -316,37 +323,7 @@ static void calculate_perimiter(Layer* layer) {
     upperleft = halftop + sidecount + topcount + sidecount;
 }
 
-static GPoint coord_for_light(int a) {
-    GPoint point;
-    if (a < upperright) {
-        // top right
-        point.x = a * step + center.x + 5;
-        point.y = 1;
-
-    } else if (a >= upperright && a < lowerright) {
-        // right
-        point.x = bounds.size.w - 1;
-        point.y = (a - upperright) * step + 9;
-
-    } else if (a >= lowerright && a < lowerleft) {
-        // bottom
-        point.x = bounds.size.w - (a - lowerright + 1) * (step) + 3;
-        point.y = bounds.size.h - 1;
-
-    } else if (a >= lowerleft && a < upperleft) {
-        // left
-        point.x = 1;
-        point.y = bounds.size.h - (a - lowerleft + 1) * step + 1;
-
-    } else {
-        // top left
-        point.x = (a - upperleft) * step + 7;
-        point.y = 1;
-    }
-    return point;
-}
-
-// Draw the 24 hour labels
+// Draw the 24 hour lines
 static void label_update_proc(Layer* layer, GContext* ctx) {
     GRect bounds = layer_get_unobstructed_bounds(layer);
 
@@ -370,45 +347,80 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
 
 // Draw forecast ring
 static void forecast_update_proc(Layer* layer, GContext* ctx) {
+    if (!s_space_ready || !s_weather_ready)
+        return;
+    
     GRect fcst_bounds = layer_get_unobstructed_bounds(layer);
-
-
-    int b = 9;
-
     int w = fcst_bounds.size.w;
     int h = fcst_bounds.size.h;
 
     time_t temp = time(NULL); 
     struct tm *tick_time = localtime(&temp);
     int hour = tick_time->tm_hour;
-
+    //outer (light + temp + clouds) ring
+    for (int i = 0; i< 24; i++){
+        //time is 15:35
+        // i = 0
+        // hour = 15
+        // want 9 -> 24 - hour
+        // i = 1
+        // want 10 -> (24 - hour) + i
+        // i = 23
+        // want 
+        
+        
+        int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
+        graphics_context_set_stroke_width(ctx, temp);
+        int center = temp / 2;
+        if (i > s_sunset || i <= s_sunrise){
+            //night color pick
+            if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+                graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
+            else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
+                graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
+            else
+                graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
+        }else{
+            //day color pick
+            if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+                graphics_context_set_stroke_color(ctx, COLOR_DAY);
+            else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
+                graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
+            else
+                graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
+        }
+        GPoint p1 = hours(i, w, h, center);
+        GPoint p2 = hours(i+1, w, h, center);
+        graphics_draw_line(ctx, p1, p2);     
+    }
+    
+    graphics_context_set_stroke_width(ctx, 1); //reset stroke width
+    
     for (int i = 0; i < 24; i++) {
-        GPoint p1 = hours(i + hour,w,h,b);
-        GPoint p2 = hours(i + hour + 1,w,h,b);
         //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-        switch (forecast_str[i]) {
-            case 'c':
-            graphics_context_set_stroke_width(ctx, 3);
-            graphics_context_set_stroke_color(ctx, COLOR_CLOUDY);
-            break;
+        switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
             case 'r':
-            graphics_context_set_stroke_width(ctx, 4);
-            graphics_context_set_stroke_color(ctx, COLOR_RAINY);
-            break;
+                graphics_context_set_stroke_color(ctx, COLOR_RAINY);
+                break;
             case 's':
-            graphics_context_set_stroke_width(ctx, 4);
-            graphics_context_set_stroke_color(ctx, COLOR_SNOWY);
-            break;
-            case 'p':
-            graphics_context_set_stroke_width(ctx, 2);
-            graphics_context_set_stroke_color(ctx, COLOR_PARTLY);
-            break;
+                graphics_context_set_stroke_color(ctx, COLOR_SNOWY);
+                break;
+            case 'l':
+                graphics_context_set_stroke_color(ctx, COLOR_SLEETY);
+                break;
             case '_':
-            continue; // don't draw clear segments!
+            case '?':
             default:
-            graphics_context_set_stroke_color(ctx, GColorBlack);
+                continue; // don't draw clear segments!
 
         }
+        int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
+        int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+2;
+        int center = (width/2) + temp;
+        graphics_context_set_stroke_width(ctx, 1); //reset stroke width in case the next op comes out to 0
+        graphics_context_set_stroke_width(ctx, width);
+        GPoint p1 = hours(i ,w,h,center);
+        GPoint p2 = hours(i + 1,w,h,center);
         graphics_draw_line(ctx, p1, p2);
     }
 }
@@ -504,20 +516,7 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
 static void sky_update_proc(Layer *layer, GContext *ctx) {
 
     // Draw background
-    for (int a = 0; a < 60; a++) {    
-
-        if (!s_space_ready) {
-            return;
-        } else {
-            if (a > s_sunset && a < s_sunrise) {
-                graphics_context_set_fill_color(ctx, COLOR_NIGHT);
-            } else {
-                graphics_context_set_fill_color(ctx, COLOR_DAY);
-            }
-        }
-        GPoint point = coord_for_light(a);
-        GRect rect = {GPoint(point.x - 5, point.y - 5), GSize(10,10)};
-        graphics_fill_rect (ctx, rect, 0, GCornerNone);
+    for (int i = 0; i < 24; i++) {    
     }
 }
 
@@ -553,15 +552,20 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     // Read tuples for data
     Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
     Tuple *conditions_tuple = dict_find(iterator, MESSAGE_KEY_CONDITIONS);
-    Tuple *forecast_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST);
+    Tuple *forecast_clouds_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_CLOUDS);
+    Tuple *forecast_precip_type_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_TYPE);
+    Tuple *forecast_precip_intensity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_INTENSITY);
+    Tuple *forecast_temp_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_TEMP);
 
     // If all data is available, use it
     if(temp_tuple) {
         APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received weather data");
 
         snprintf(temperature_buffer, sizeof(temperature_buffer), "%d˚", (int)temp_tuple->value->int32); // TODO units
-        snprintf(forecast_str, sizeof(forecast_str), "%s", forecast_tuple->value->cstring);
-
+        snprintf(forecast_clouds_str, sizeof(forecast_clouds_str), "%s", forecast_clouds_tuple->value->cstring);
+        snprintf(forecast_precip_type_str, sizeof(forecast_precip_type_str), "%s", forecast_precip_type_tuple->value->cstring);
+        snprintf(forecast_precip_intensity_str, sizeof(forecast_precip_intensity_str), "%s", forecast_precip_intensity_tuple->value->cstring);
+        snprintf(forecast_temp_str, sizeof(forecast_temp_str), "%s", forecast_temp_tuple->value->cstring);
         text_layer_set_text(s_temp_layer, temperature_buffer);
 
         
@@ -574,24 +578,82 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         
         layer_mark_dirty(text_layer_get_layer(s_temp_layer));
         layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
+        s_weather_ready = true;
+        layer_mark_dirty(s_forecast_layer);
 
     }
-
+    // space data
     // Read tuples for data
     Tuple *sunrise_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNRISE);
     Tuple *sunset_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNSET);
 
     if(sunrise_tuple) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Inbox recieved space data.");
         s_sunset = sunset_tuple->value->int32;
         s_sunrise = sunrise_tuple->value->int32;
         s_space_ready = true;
-        layer_mark_dirty(s_sky_layer);
+        layer_mark_dirty(s_forecast_layer);
     }
 
 }
 
+static char reasonStr[20];
+static void getAppMessageResult(AppMessageResult reason){
+    switch(reason){
+    case APP_MSG_OK:
+    snprintf(reasonStr,20,"%s","APP_MSG_OK");
+    break;
+    case APP_MSG_SEND_TIMEOUT:
+    snprintf(reasonStr,20,"%s","SEND TIMEOUT");
+    break;
+    case APP_MSG_SEND_REJECTED:
+    snprintf(reasonStr,20,"%s","SEND REJECTED");
+    break;
+    case APP_MSG_NOT_CONNECTED:
+    snprintf(reasonStr,20,"%s","NOT CONNECTED");
+    break;
+    case APP_MSG_APP_NOT_RUNNING:
+    snprintf(reasonStr,20,"%s","NOT RUNNING");
+    break;
+    case APP_MSG_INVALID_ARGS:
+    snprintf(reasonStr,20,"%s","INVALID ARGS");
+    break;
+    case APP_MSG_BUSY:
+    snprintf(reasonStr,20,"%s","BUSY");
+    break;
+    case APP_MSG_BUFFER_OVERFLOW:
+    snprintf(reasonStr,20,"%s","BUFFER OVERFLOW");
+    break;
+    case APP_MSG_ALREADY_RELEASED:
+    snprintf(reasonStr,20,"%s","ALRDY RELEASED");
+    break;
+    case APP_MSG_CALLBACK_ALREADY_REGISTERED:
+    snprintf(reasonStr,20,"%s","CLB ALR REG");
+    break;
+    case APP_MSG_CALLBACK_NOT_REGISTERED:
+    snprintf(reasonStr,20,"%s","CLB NOT REG");
+    break;
+    case APP_MSG_OUT_OF_MEMORY:
+    snprintf(reasonStr,20,"%s","OUT OF MEM");
+    break;   
+    case APP_MSG_CLOSED:
+        snprintf(reasonStr,20,"%s","MSG CLOSED");
+        break;  
+    case APP_MSG_INTERNAL_ERROR:
+        snprintf(reasonStr,20,"%s","INTERNAL ERR");
+        break;  
+    case APP_MSG_INVALID_STATE:
+        snprintf(reasonStr,20,"%s","INVALID STATE");
+        break;  
+    }
+
+}
+
+
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+    getAppMessageResult(reason);
+    APP_LOG(APP_LOG_LEVEL_ERROR, reasonStr);
 }
 
 static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
@@ -651,11 +713,6 @@ static void main_window_load(Window *window) {
     s_conditions_layer = bitmap_layer_create(conditionRect);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_conditions_layer));
 
-    // Weather forecast layer
-    s_forecast_layer = layer_create(GRect(5, 5, w - 10, h - 10));
-    layer_set_update_proc(s_forecast_layer, forecast_update_proc);
-    layer_add_child(window_get_root_layer(window), s_forecast_layer);
-
     // Create the Bluetooth icon GBitmap
     s_bt_icon_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_ICON);
 
@@ -668,6 +725,11 @@ static void main_window_load(Window *window) {
     s_sky_layer = layer_create(window_bounds);
     layer_set_update_proc(s_sky_layer, sky_update_proc);
     layer_add_child(window_get_root_layer(window), s_sky_layer);
+    
+     // Weather forecast layer
+    s_forecast_layer = layer_create(window_bounds);
+    layer_set_update_proc(s_forecast_layer, forecast_update_proc);
+    layer_add_child(window_get_root_layer(window), s_forecast_layer);
 
     // Create 24 hour layer
     s_24hour_layer = layer_create(window_bounds);
@@ -753,6 +815,7 @@ static void init() {
     prv_load_settings();
 
     s_space_ready = false;
+    s_weather_ready = false;
 
     s_main_window = window_create();
     window_set_window_handlers(s_main_window, (WindowHandlers) {
@@ -786,8 +849,8 @@ static void init() {
     app_message_register_outbox_failed(outbox_failed_callback);
     app_message_register_outbox_sent(outbox_sent_callback);
 
-    const int inbox_size = 128;
-    const int outbox_size = 128;
+    const int inbox_size = 150;
+    const int outbox_size = 150;
     app_message_open(inbox_size, outbox_size);
 
     connection_service_subscribe((ConnectionHandlers) {

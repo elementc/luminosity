@@ -14,6 +14,9 @@ Pebble.addEventListener('appmessage',
 function locationSuccess(pos) {
     var lat = pos.coords.latitude;
     var lon = pos.coords.longitude;
+    //delete me debug
+    //lat = 28.6082;
+    //lon = -80.6041;
     
     var date = new Date();
     
@@ -75,44 +78,70 @@ function getWeather(lat, lon) {
             var conditions = json.currently.icon;      
             console.log('Conditions are ' + conditions);
 
-            var nextDay = "";
+            var cloudsNextDay = "";
+            var precipTypeNextDay = "";
+            var precipIntensityNextDay = "";
+            var temps = [];
+            var minTemp = 99999;
+            var maxTemp = -99999;
+            var tempNextDay = "";
             for (var i = 0; i < 24; i++) {
-                //clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy, partly-cloudy-day, or partly-cloudy-night
-                // c, r, s, p, _, ?
-                switch(json.hourly.data[i].icon) {
-                    case 'clear-day':
-                    case 'clear-night':
-                    case 'wind':
-                        nextDay += '_';
-                        break;
-                    case 'rain':
-                        nextDay += 'r';
-                        break;                    
-                    case 'snow':
-                    case 'sleet':
-                        nextDay += 's';
-                        break;
-                    case 'fog':
-                    case 'cloudy':
-                        nextDay += 'c';
-                        break;
-                    case 'partly-cloudy-day':
-                    case 'partly-cloudy-night':
-                        nextDay += 'p';
-                        break;
-                    default:
-                        nextDay += '?';
-                        break;
+
+                //do cloud coverage estimates
+                if (json.hourly.data[i].cloudCover < 0.4) 
+                    cloudsNextDay += '0';
+                else if (json.hourly.data[i].cloudCover < 0.75)
+                    cloudsNextDay += '1';
+                else
+                    cloudsNextDay += '2';
+                
+                // do precip type and intensity
+                if (json.hourly.data[i].precipIntensity > 0 ){
+                    var precipScore = Math.round(3 * json.hourly.data[i].precipProbability) + Math.round(2 * json.hourly.data[i].precipIntensity);
+                    precipIntensityNextDay+= (""+Math.min(9, precipScore));
+                    switch(json.hourly.data[i].precipType){
+                        case 'snow':
+                            precipTypeNextDay += 's';
+                            break;
+                        case 'sleet':
+                            precipTypeNextDay += 'l';
+                            break;
+                        case 'rain':
+                            precipTypeNextDay += 'r';
+                            break;
+                        default:
+                            precipTypeNextDay += '_';
+                            break;
+                    }
+                } else{
+                    precipIntensityNextDay += ""+0;
+                    precipTypeNextDay += '_';
                 }
+                //scrape temperature data
+                temps.push(json.hourly.data[i].temperature);
+                if (json.hourly.data[i].temperature > maxTemp)
+                    maxTemp = json.hourly.data[i].temperature;
+                if (json.hourly.data[i].temperature < minTemp)
+                    minTemp = json.hourly.data[i].temperature;
+            }
+            
+            for (i = 0; i < temps.length; i++){
+                tempNextDay += "" + Math.round( ( (temps[i] - minTemp) / (maxTemp - minTemp) ) * 9);
             }
 
-            console.log("Next 24 hours: " + nextDay);
+            console.log("Clouds next 24 hours: " + cloudsNextDay);
+            console.log("precipitation types next 24 hours: " + precipTypeNextDay);
+            console.log("precipitation intensity next 24 hours: " + precipIntensityNextDay);
+            console.log("temperature scale next 24 hours: " + tempNextDay);
 
             // Assemble dictionary using our keys
             var dictionary = {
                 'TEMPERATURE': temperature,
                 'CONDITIONS': conditions,
-                'FORECAST': nextDay
+                'FORECAST_CLOUDS': cloudsNextDay,
+                'FORECAST_PRECIP_TYPE': precipTypeNextDay,
+                'FORECAST_PRECIP_INTENSITY': precipIntensityNextDay,
+                'FORECAST_TEMP': tempNextDay
             };
 
             // Send to Pebble
@@ -137,16 +166,11 @@ function locationError(err) {
 function getSpace(lat, lon, date) {
     space.calculate(lat, lon, date);
     // Assemble dictionary using our keys
+    console.log('Sunrise hour: '+ space.sunrise);
+    console.log('Sunset hour: ' + space.sunset);
     var dictionary = {
-        'SPACE_SUN': space.sun,
         'SPACE_SUNRISE': space.sunrise,
         'SPACE_SUNSET': space.sunset,
-        'SPACE_MOON': space.moon,
-        'SPACE_MERCURY': space.mercury,
-        'SPACE_VENUS': space.venus,
-        'SPACE_MARS': space.mars,
-        'SPACE_JUPITER': space.jupiter,
-        'SPACE_SATURN': space.saturn,
     };
 
     // Send to Pebble
@@ -161,6 +185,16 @@ function getSpace(lat, lon, date) {
 }
 
 function getLocation() {
+    if (settings.CFG_OVERRIDE_LOC){
+        var date = new Date();
+        var lat = Number(settings.CFG_LAT);
+        var lon = Number(settings.CFG_LON);
+        //getCity(lat, lon);
+        getWeather(lat, lon);
+        getSpace(lat, lon, date);
+        return;
+    }
+    // else
     navigator.geolocation.getCurrentPosition(
         locationSuccess,
         locationError,
@@ -175,7 +209,7 @@ var clayConfig = require('./config');
 // Initialize Clay
 var clay = new Clay(clayConfig);
 
-var defaultSettings = {'CFG_ANALOG':true, 'CFG_CELSIUS':true, 'CFG_DARKSKY_KEY':'' };
+var defaultSettings = {'CFG_OVERRIDE_LOC':false, 'CFG_ANALOG':false, 'CFG_CELSIUS':false, 'CFG_DARKSKY_KEY':'09a66d34ccc4feb9a2b56e3c6cfee527' };
 var settings = {};
 
 function loadSettings() {

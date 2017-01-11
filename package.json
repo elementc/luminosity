@@ -16,19 +16,18 @@
         "messageKeys": [
             "TEMPERATURE",
             "CONDITIONS",
-            "SPACE_SUN",
             "SPACE_SUNRISE",
             "SPACE_SUNSET",
-            "SPACE_MOON",
-            "SPACE_MERCURY",
-            "SPACE_VENUS",
-            "SPACE_MARS",
-            "SPACE_JUPITER",
-            "SPACE_SATURN",
-            "FORECAST",
+            "FORECAST_CLOUDS",
             "CFG_CELSIUS",
             "CFG_DARKSKY_KEY",
-            "CFG_ANALOG"
+            "CFG_ANALOG",
+            "FORECAST_PRECIP_TYPE",
+            "FORECAST_PRECIP_INTENSITY",
+            "FORECAST_TEMP",
+            "CFG_OVERRIDE_LOC",
+            "CFG_LAT",
+            "CFG_LON"
         ],
         "projectType": "native",
         "resources": {
@@ -110,8 +109,7 @@
         },
         "sdkVersion": "3",
         "targetPlatforms": [
-            "basalt",
-            "emery"
+            "basalt"
         ],
         "uuid": "2049ed14-a900-44f0-ad90-bdf1e7ccade7",
         "watchapp": {
