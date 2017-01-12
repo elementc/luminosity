@@ -1,5 +1,5 @@
 {
-    "author": "Spacewalk Publishing",
+    "author": "Casey Doran",
     "dependencies": {
         "pebble-clay": "^1.0.3"
     },
@@ -114,10 +114,10 @@
             "basalt",
             "emery"
         ],
-        "uuid": "2049ed14-a900-44f0-ad90-bdf1e7ccade7",
+        "uuid": "78475e97-e2ec-477b-ae5b-4f172df569eb",
         "watchapp": {
             "watchface": true
         }
     },
-    "version": "1.0.0"
+    "version": "1.3.0"
 }
