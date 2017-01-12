@@ -17,7 +17,7 @@ Bluetooth connectivity alerts are present. Feel free to email with feature reque
 
 If you have a darksky.io key, please use your own. 
 
-Design heavily inspired by Krona Sunlight, and Android Wear face.
+Design heavily inspired by Krona Sunlight, an Android Wear face.
 
 Built from Planets, an open source face by Alex Karantza. Check it out if you like astronomy- it's very cool.
 
