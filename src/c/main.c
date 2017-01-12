@@ -45,6 +45,7 @@ static bool s_charging;
 
 /* Weather */
 static TextLayer *s_temp_layer;
+static TextLayer *s_forecast_high_low_layer;
 static char forecast_clouds_str[25];
 static char forecast_precip_type_str[25];
 static char forecast_precip_intensity_str[25];
@@ -548,9 +549,12 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     // Weather data
     static char temperature_buffer[8];
+    static char forecast_high_low_buffer[16];
 
     // Read tuples for data
     Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
+    Tuple *forecast_high_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_HIGH);
+    Tuple *forecast_low_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_LOW);
     Tuple *conditions_tuple = dict_find(iterator, MESSAGE_KEY_CONDITIONS);
     Tuple *forecast_clouds_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_CLOUDS);
     Tuple *forecast_precip_type_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_TYPE);
@@ -562,11 +566,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received weather data");
 
         snprintf(temperature_buffer, sizeof(temperature_buffer), "%d˚", (int)temp_tuple->value->int32); // TODO units
+        snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer), "%d˚/%d˚", (int)forecast_high_tuple->value->int32, (int)forecast_low_tuple->value->int32);
         snprintf(forecast_clouds_str, sizeof(forecast_clouds_str), "%s", forecast_clouds_tuple->value->cstring);
         snprintf(forecast_precip_type_str, sizeof(forecast_precip_type_str), "%s", forecast_precip_type_tuple->value->cstring);
         snprintf(forecast_precip_intensity_str, sizeof(forecast_precip_intensity_str), "%s", forecast_precip_intensity_tuple->value->cstring);
         snprintf(forecast_temp_str, sizeof(forecast_temp_str), "%s", forecast_temp_tuple->value->cstring);
         text_layer_set_text(s_temp_layer, temperature_buffer);
+        text_layer_set_text(s_forecast_high_low_layer, forecast_high_low_buffer);
 
         
         char* conditions = conditions_tuple->value->cstring;
@@ -577,6 +583,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         }
         
         layer_mark_dirty(text_layer_get_layer(s_temp_layer));
+        layer_mark_dirty(text_layer_get_layer(s_forecast_high_low_layer));
         layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
         s_weather_ready = true;
         layer_mark_dirty(s_forecast_layer);
@@ -674,6 +681,7 @@ static void main_window_load(Window *window) {
 
     //GRect cityRect = GRect(20, 15, 100, 25);
     GRect tempRect = GRect(w - 50 - 18, 15, 50, 20);
+    GRect forecastHighLowRect = GRect(w - 83, 32, 65, 33);
     GRect timeRect = GRect(0, h/2-30, w, 50);
     GRect stepRect = GRect(20, h-38, w - 40, 20);
 
@@ -694,7 +702,6 @@ static void main_window_load(Window *window) {
 
     s_time_font = fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS);
     s_date_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
-
     s_steps_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
 
@@ -745,6 +752,15 @@ static void main_window_load(Window *window) {
     text_layer_set_font(s_temp_layer, s_date_font);
     text_layer_set_text_alignment(s_temp_layer, GTextAlignmentRight);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_temp_layer));
+    
+    //forecast high/low text layer
+    s_forecast_high_low_layer = text_layer_create(forecastHighLowRect);
+    text_layer_set_background_color(s_forecast_high_low_layer, GColorClear);
+    text_layer_set_text_color(s_forecast_high_low_layer, COLOR_TEMP);
+    text_layer_set_text(s_forecast_high_low_layer, "");
+    text_layer_set_font(s_forecast_high_low_layer, s_date_font);
+    text_layer_set_text_alignment(s_forecast_high_low_layer, GTextAlignmentRight);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_forecast_high_low_layer));
 
     // Create time TextLayer
     s_time_layer = text_layer_create(timeRect);
@@ -849,7 +865,7 @@ static void init() {
     app_message_register_outbox_failed(outbox_failed_callback);
     app_message_register_outbox_sent(outbox_sent_callback);
 
-    const int inbox_size = 150;
+    const int inbox_size = 170;
     const int outbox_size = 150;
     app_message_open(inbox_size, outbox_size);
 

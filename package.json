@@ -27,7 +27,9 @@
             "FORECAST_TEMP",
             "CFG_OVERRIDE_LOC",
             "CFG_LAT",
-            "CFG_LON"
+            "CFG_LON",
+            "FORECAST_HIGH",
+            "FORECAST_LOW"
         ],
         "projectType": "native",
         "resources": {
@@ -109,7 +111,8 @@
         },
         "sdkVersion": "3",
         "targetPlatforms": [
-            "basalt"
+            "basalt",
+            "emery"
         ],
         "uuid": "2049ed14-a900-44f0-ad90-bdf1e7ccade7",
         "watchapp": {

@@ -141,7 +141,9 @@ function getWeather(lat, lon) {
                 'FORECAST_CLOUDS': cloudsNextDay,
                 'FORECAST_PRECIP_TYPE': precipTypeNextDay,
                 'FORECAST_PRECIP_INTENSITY': precipIntensityNextDay,
-                'FORECAST_TEMP': tempNextDay
+                'FORECAST_TEMP': tempNextDay,
+                'FORECAST_HIGH': maxTemp,
+                'FORECAST_LOW': minTemp
             };
 
             // Send to Pebble
