@@ -22,6 +22,8 @@
 #define COLOR_SLEETY GColorCeleste
 #define COLOR_PARTLY GColorLightGray
 
+#define NO_WEATHER_SKY_LINE_WIDTH 4
+
 #define TRI_W 8
 
 // Persistent storage key
@@ -348,9 +350,6 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
 
 // Draw forecast ring
 static void forecast_update_proc(Layer* layer, GContext* ctx) {
-    if (!s_space_ready || !s_weather_ready)
-        return;
-    
     GRect fcst_bounds = layer_get_unobstructed_bounds(layer);
     int w = fcst_bounds.size.w;
     int h = fcst_bounds.size.h;
@@ -358,71 +357,85 @@ static void forecast_update_proc(Layer* layer, GContext* ctx) {
     time_t temp = time(NULL); 
     struct tm *tick_time = localtime(&temp);
     int hour = tick_time->tm_hour;
-    //outer (light + temp + clouds) ring
-    for (int i = 0; i< 24; i++){
-        //time is 15:35
-        // i = 0
-        // hour = 15
-        // want 9 -> 24 - hour
-        // i = 1
-        // want 10 -> (24 - hour) + i
-        // i = 23
-        // want 
-        
-        
-        int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
-        graphics_context_set_stroke_width(ctx, temp);
-        int center = temp / 2;
-        if (i > s_sunset || i <= s_sunrise){
-            //night color pick
-            if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+    if (!s_space_ready && !s_weather_ready) //if we have neither, we can do neither
+        return;
+    else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
+        for (int i = 0; i< 24; i++){
+            graphics_context_set_stroke_width(ctx, NO_WEATHER_SKY_LINE_WIDTH);
+            if (i > s_sunset || i <= s_sunrise){
+                //night color pick
                 graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
-            else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
-                graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
-            else
-                graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
-        }else{
-            //day color pick
-            if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+            }else{
+                //day color pick
                 graphics_context_set_stroke_color(ctx, COLOR_DAY);
-            else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
-                graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
-            else
-                graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
+            }
+            int center = NO_WEATHER_SKY_LINE_WIDTH / 2;
+            GPoint p1 = hours(i, w, h, center);
+            GPoint p2 = hours(i+1, w, h, center);
+            graphics_draw_line(ctx, p1, p2);     
         }
-        GPoint p1 = hours(i, w, h, center);
-        GPoint p2 = hours(i+1, w, h, center);
-        graphics_draw_line(ctx, p1, p2);     
+        return;
     }
-    
-    graphics_context_set_stroke_width(ctx, 1); //reset stroke width
-    
-    for (int i = 0; i < 24; i++) {
-        //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-        switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-            case 'r':
-                graphics_context_set_stroke_color(ctx, COLOR_RAINY);
-                break;
-            case 's':
-                graphics_context_set_stroke_color(ctx, COLOR_SNOWY);
-                break;
-            case 'l':
-                graphics_context_set_stroke_color(ctx, COLOR_SLEETY);
-                break;
-            case '_':
-            case '?':
-            default:
-                continue; // don't draw clear segments!
-
+    else if (!s_space_ready) //need both space and weather to do the whole set of rings...
+        return;
+    else{
+        //outer (light + temp + clouds) ring
+        for (int i = 0; i< 24; i++){
+            
+            int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
+            graphics_context_set_stroke_width(ctx, temp);
+            int center = temp / 2;
+            if (i > s_sunset || i <= s_sunrise){
+                //night color pick
+                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
+                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
+                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
+                else
+                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
+            }else{
+                //day color pick
+                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+                    graphics_context_set_stroke_color(ctx, COLOR_DAY);
+                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
+                    graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
+                else
+                    graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
+            }
+            GPoint p1 = hours(i, w, h, center);
+            GPoint p2 = hours(i+1, w, h, center);
+            graphics_draw_line(ctx, p1, p2);     
         }
-        int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
-        int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+2;
-        int center = (width/2) + temp;
-        graphics_context_set_stroke_width(ctx, 1); //reset stroke width in case the next op comes out to 0
-        graphics_context_set_stroke_width(ctx, width);
-        GPoint p1 = hours(i ,w,h,center);
-        GPoint p2 = hours(i + 1,w,h,center);
-        graphics_draw_line(ctx, p1, p2);
+        
+        graphics_context_set_stroke_width(ctx, 1); //reset stroke width
+        
+        for (int i = 0; i < 24; i++) {
+            //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
+            switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
+                case 'r':
+                    graphics_context_set_stroke_color(ctx, COLOR_RAINY);
+                    break;
+                case 's':
+                    graphics_context_set_stroke_color(ctx, COLOR_SNOWY);
+                    break;
+                case 'l':
+                    graphics_context_set_stroke_color(ctx, COLOR_SLEETY);
+                    break;
+                case '_':
+                case '?':
+                default:
+                    continue; // don't draw clear segments!
+    
+            }
+            int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
+            int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+2;
+            int center = (width/2) + temp;
+            graphics_context_set_stroke_width(ctx, 1); //reset stroke width in case the next op comes out to 0
+            graphics_context_set_stroke_width(ctx, width);
+            GPoint p1 = hours(i ,w,h,center);
+            GPoint p2 = hours(i + 1,w,h,center);
+            graphics_draw_line(ctx, p1, p2);
+        }
     }
 }
 
