@@ -111,7 +111,9 @@
         },
         "sdkVersion": "3",
         "targetPlatforms": [
+            "aplite",
             "basalt",
+            "diorite",
             "emery"
         ],
         "uuid": "78475e97-e2ec-477b-ae5b-4f172df569eb",
@@ -119,5 +121,5 @@
             "watchface": true
         }
     },
-    "version": "1.4.0"
+    "version": "1.5.0"
 }
