@@ -75,9 +75,9 @@ static ClaySettings settings;
 static Window *s_main_window;
 
 /* Battery */
-static Layer *s_battery_layer;
+static TextLayer *s_battery_text_layer;
+static char s_battery_string[6];
 static int s_battery_level;
-static bool s_charging;
 
 /* Weather */
 static TextLayer *s_temp_layer;
@@ -100,7 +100,6 @@ static TextLayer *s_steps_layer;
 static GFont s_steps_font;
 static char steps_str[12];
 
-// TODO: needs finishing
 /* Bluetooth */
 static BitmapLayer *s_bt_icon_layer;
 static GBitmap *s_bt_icon_bitmap;
@@ -108,7 +107,6 @@ static GBitmap *s_bt_icon_bitmap;
 /* Space */
 static int s_sunset, s_sunrise;
 static bool s_space_ready;
-static Layer *s_sky_layer;
 
 static char* condition_icons[] = {
     "clear-day", "clear-night", "rain", "snow", "sleet", "wind", "fog", "cloudy", "partly-cloudy-day", "partly-cloudy-night"
@@ -128,14 +126,14 @@ static void prv_update_display() {
 
     if (settings.Analog) {
         layer_remove_from_parent(text_layer_get_layer(s_time_layer));
-        layer_remove_from_parent(s_battery_layer);
+        layer_remove_from_parent(text_layer_get_layer(s_battery_text_layer));
         layer_add_child(winrl, s_analog_layer);
 
         layer_set_frame(text_layer_get_layer(s_date_layer), GRect(20, h-38, w, 30));
         text_layer_set_text_alignment(s_date_layer, GTextAlignmentLeft);
     } else {
         layer_add_child(winrl, text_layer_get_layer(s_time_layer));  
-        layer_add_child(winrl, s_battery_layer);  
+        layer_add_child(winrl, text_layer_get_layer(s_battery_text_layer));  
         layer_remove_from_parent(s_analog_layer);
 
         layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, h/2+15, w, 30));
@@ -235,11 +233,15 @@ static void bluetooth_callback(bool connected) {
 static void battery_callback(BatteryChargeState state) {
     // Record the new battery level
     s_battery_level = state.charge_percent;
-    s_charging = state.is_charging; 
 
     // Update meter
-    layer_mark_dirty(s_battery_layer);
     layer_mark_dirty(s_analog_layer);
+    
+    // update text readout
+    snprintf(s_battery_string, sizeof(s_battery_string), "%d%c", s_battery_level, '%');
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "battery updated");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "%s", s_battery_string);
+    text_layer_set_text(s_battery_text_layer, s_battery_string);
 }
 
 static void health_handler(HealthEventType event, void *context) {
@@ -267,7 +269,7 @@ static void health_handler(HealthEventType event, void *context) {
 
                 APP_LOG(APP_LOG_LEVEL_DEBUG, "steps: %s ", steps_str);
             } else {
-                text_layer_set_text(s_steps_layer, "No Step Data");
+                text_layer_set_text(s_steps_layer, "");
                 APP_LOG(APP_LOG_LEVEL_DEBUG, "steps unavailable");
             }
 
@@ -318,22 +320,6 @@ static void update_time() {
     }
 }
 
-// battery layer update proc
-static void battery_update_proc(Layer *layer, GContext *ctx) {
-    GRect bounds = layer_get_bounds(layer);
-
-    // Find the width of the bar
-    int width = (int)(float)(((float)s_battery_level / 100.0F) * bounds.size.w);
-
-    // Draw the background
-
-    graphics_context_set_stroke_color(ctx, s_charging ? GColorMediumSpringGreen : COLOR_BATT);
-    graphics_draw_rect (ctx, GRect(0, 0, bounds.size.w, bounds.size.h));
-
-    // Draw the bar
-    graphics_context_set_fill_color(ctx, s_charging ? GColorMediumSpringGreen : COLOR_BATT);
-    graphics_fill_rect(ctx, GRect(0, 0, width, bounds.size.h), GCornerNone , 0);
-}
 
 static int upperright, lowerright, lowerleft, upperleft, step;
 static GRect bounds;
@@ -599,14 +585,6 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
 }
 
 
-// Space drawing
-static void sky_update_proc(Layer *layer, GContext *ctx) {
-
-    // Draw background
-    for (int i = 0; i < 24; i++) {    
-    }
-}
-
 
 // tick has occurred 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -773,7 +751,7 @@ static void main_window_load(Window *window) {
 
     GRect conditionRect = GRect(18,18, 26,26);    
     GRect btRect = GRect(w/2-10, 20, 20, 20);
-    GRect batteryRect = GRect(23, h-28, 40, 5);
+    GRect batteryRect = GRect(23, h-38, 40, 20);
 
     GRect dateRect;
     GTextAlignment dateAlign;
@@ -813,11 +791,6 @@ static void main_window_load(Window *window) {
     s_bt_icon_layer = bitmap_layer_create(btRect);
     bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bt_icon_layer));
-
-    // Create sky layer
-    s_sky_layer = layer_create(window_bounds);
-    layer_set_update_proc(s_sky_layer, sky_update_proc);
-    layer_add_child(window_get_root_layer(window), s_sky_layer);
     
      // Weather forecast layer
     s_forecast_layer = layer_create(window_bounds);
@@ -867,8 +840,13 @@ static void main_window_load(Window *window) {
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
 
     // Create battery meter Layer
-    s_battery_layer = layer_create(batteryRect);
-    layer_set_update_proc(s_battery_layer, battery_update_proc);
+    s_battery_text_layer = text_layer_create(batteryRect);
+    text_layer_set_background_color(s_battery_text_layer, GColorClear);
+    text_layer_set_text_color(s_battery_text_layer, COLOR_STEPS);
+    text_layer_set_text(s_battery_text_layer, "");
+    text_layer_set_font(s_battery_text_layer, s_steps_font);
+    text_layer_set_text_alignment(s_battery_text_layer, GTextAlignmentLeft);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_battery_text_layer));
 
     // Steps layer
     s_steps_layer = text_layer_create(stepRect);
@@ -887,7 +865,7 @@ static void main_window_load(Window *window) {
 
     // Things that are different if you're analog vs digital
     if (!settings.Analog) layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
-    if (!settings.Analog) layer_add_child(window_get_root_layer(window), s_battery_layer);
+    if (!settings.Analog) layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_battery_text_layer));
     if (settings.Analog) layer_add_child(window_get_root_layer(window), s_analog_layer);
 
     // Initialize the display
@@ -906,9 +884,8 @@ static void main_window_unload(Window *window) {
     text_layer_destroy(s_date_layer);
     text_layer_destroy(s_steps_layer);
     text_layer_destroy(s_temp_layer);
-
-    layer_destroy(s_battery_layer);
-    layer_destroy(s_sky_layer);
+    text_layer_destroy(s_battery_text_layer);
+    
     layer_destroy(s_analog_layer);
     layer_destroy(s_forecast_layer);
 }
