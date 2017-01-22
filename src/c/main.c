@@ -54,7 +54,12 @@
 
 #endif
 
+#ifdef PBL_RECT
 #define NO_WEATHER_SKY_LINE_WIDTH 4
+#else
+#define NO_WEATHER_SKY_LINE_WIDTH 8
+#endif
+
 #define WIDTH_24H_LINES 1
 #define WIDTH_24H_LINES_CURRENT 3
 
@@ -118,25 +123,29 @@ static GBitmap* s_condition_icon_bitmap[10];
 static void prv_update_display() {
     // hide and display things according to settings
     Layer* winrl = window_get_root_layer(s_main_window);
-    Layer* window_layer = window_get_root_layer(s_main_window);
-    GRect window_bounds = layer_get_unobstructed_bounds(window_layer);
+    GRect window_bounds = layer_get_unobstructed_bounds(winrl);
     int w = window_bounds.size.w;
     int h = window_bounds.size.h;
-
+    #ifdef PBL_RECT
+        GRect date_layer_rect_analog = GRect(20, h-38, w, 30);
+    #else
+        GRect date_layer_rect_analog = GRect(45, h-55, 60, 20);
+    #endif
+        GRect date_layer_rect_digital =  GRect(0, h/2+15, w, 30);
 
     if (settings.Analog) {
         layer_remove_from_parent(text_layer_get_layer(s_time_layer));
         layer_remove_from_parent(text_layer_get_layer(s_battery_text_layer));
         layer_add_child(winrl, s_analog_layer);
 
-        layer_set_frame(text_layer_get_layer(s_date_layer), GRect(20, h-38, w, 30));
+        layer_set_frame(text_layer_get_layer(s_date_layer), date_layer_rect_analog);
         text_layer_set_text_alignment(s_date_layer, GTextAlignmentLeft);
     } else {
         layer_add_child(winrl, text_layer_get_layer(s_time_layer));  
         layer_add_child(winrl, text_layer_get_layer(s_battery_text_layer));  
         layer_remove_from_parent(s_analog_layer);
 
-        layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, h/2+15, w, 30));
+        layer_set_frame(text_layer_get_layer(s_date_layer), date_layer_rect_digital);
         text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
     }
 }
@@ -315,7 +324,7 @@ static void update_time() {
     strftime(date_buffer, sizeof(date_buffer), "%b %e", tick_time);
     text_layer_set_text(s_date_layer, date_buffer);
 
-    if(tick_time->tm_min % 15 == 0) {
+    if(tick_time->tm_min % 30 == 0) {
         send_message();
     }
 }
@@ -345,16 +354,22 @@ static void calculate_perimiter(Layer* layer) {
     upperleft = halftop + sidecount + topcount + sidecount;
 }
 
+static int hr_to_a(int hour){
+    return DEG_TO_TRIGANGLE(
+        180 + (15 * hour)
+    );
+}
+
 // Draw the 24 hour lines
 static void label_update_proc(Layer* layer, GContext* ctx) {
     GRect bounds = layer_get_unobstructed_bounds(layer);
-
+    #ifdef PBL_RECT
+    graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
+    graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES);
     for (int i = 0; i < 24; i++) {
         //GPoint p = hours(i, bounds.size.w, bounds.size.h, 5);
         GPoint p1 = hours(i, bounds.size.w, bounds.size.h, 17);
         GPoint p2 = hours(i, bounds.size.w, bounds.size.h, 0);
-        graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
-        graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES);
         graphics_draw_line(ctx, p1, p2);
     }
     time_t temp = time(NULL); 
@@ -365,6 +380,25 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
     graphics_context_set_stroke_color(ctx, COLOR_24H_CURRENT);
     graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
     graphics_draw_line(ctx, p1, p2);
+    #else
+    GRect innerBounds = grect_crop(bounds, 18);    
+    graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
+    graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES);
+    for (int i = 0; i < 24; i++) {
+        GPoint inner = gpoint_from_polar(innerBounds, GOvalScaleModeFillCircle, hr_to_a(i));
+        GPoint outer = gpoint_from_polar(bounds, GOvalScaleModeFillCircle, hr_to_a(i));
+        graphics_draw_line(ctx, inner, outer);
+    }
+    time_t temp = time(NULL); 
+    struct tm *tick_time = localtime(&temp);
+    int hour = tick_time->tm_hour;
+    GRect currentHourBounds = grect_crop(bounds, 20);
+    GPoint p1 = gpoint_from_polar(currentHourBounds, GOvalScaleModeFillCircle, hr_to_a(hour));
+    GPoint p2 = gpoint_from_polar(bounds, GOvalScaleModeFillCircle, hr_to_a(hour));
+    graphics_context_set_stroke_color(ctx, COLOR_24H_CURRENT);
+    graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
+    graphics_draw_line(ctx, p1, p2);
+    #endif
 
 }
 
@@ -377,7 +411,8 @@ static void forecast_update_proc(Layer* layer, GContext* ctx) {
     time_t temp = time(NULL); 
     struct tm *tick_time = localtime(&temp);
     int hour = tick_time->tm_hour;
-    if (!s_space_ready && !s_weather_ready) //if we have neither, we can do neither
+    #ifdef PBL_RECT
+    if (!s_space_ready) //if we have no space, we can do neither
         return;
     else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
         for (int i = 0; i< 24; i++){
@@ -405,9 +440,7 @@ static void forecast_update_proc(Layer* layer, GContext* ctx) {
         }
         return;
     }
-    else if (!s_space_ready) //need both space and weather to do the whole set of rings...
-        return;
-    else{
+    else{ // full set of rings
         for (int i = 0; i< 24; i++){
             
             //outer (light + temp + clouds) ring
@@ -495,7 +528,99 @@ static void forecast_update_proc(Layer* layer, GContext* ctx) {
             
             graphics_fill_rect(ctx, r1, 0, GCornerNone);           
         }
+        return;
     }
+    #else
+    if (!s_space_ready) //if we have no space, we can do neither
+        return;
+    else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
+        GRect bounds = grect_crop(fcst_bounds, NO_WEATHER_SKY_LINE_WIDTH / 2);
+        for (int i = 0; i < 24; i++){
+             if (i > s_sunset || i <= s_sunrise){
+                //night color pick
+                graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
+            }
+            else{
+                //day color pick
+                graphics_context_set_stroke_color(ctx, COLOR_DAY);
+            }
+            graphics_context_set_stroke_width(ctx, NO_WEATHER_SKY_LINE_WIDTH);
+            graphics_draw_arc(ctx, bounds, GOvalScaleModeFitCircle, hr_to_a(i), hr_to_a(i+1));
+        }
+
+        return;
+    }
+    else{ //full set of rings
+        for (int i = 0; i< 24; i++){
+        //outer (light + temp + clouds) ring
+            int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 6;
+            graphics_context_set_stroke_width(ctx, temp);
+            if (i > s_sunset || i <= s_sunrise){
+                //night color pick
+                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
+                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
+                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
+                else
+                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
+            }
+            else{
+                //day color pick
+                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
+                    graphics_context_set_stroke_color(ctx, COLOR_DAY);
+                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
+                    graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
+                else
+                    graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
+            }
+            int p1 = hr_to_a(i);
+            int p2 = hr_to_a(i+1);
+            GRect r1 = grect_crop(fcst_bounds, temp/2);
+            graphics_draw_arc(ctx, r1, GOvalScaleModeFitCircle, p1, p2);
+            
+            // inner (precip) ring      
+            //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
+            if (i > s_sunset || i <= s_sunrise){
+                switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
+                    case 'r':
+                        graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
+                        break;
+                    case 's':
+                        graphics_context_set_stroke_color(ctx, COLOR_SNOWY_NIGHT);
+                        break;
+                    case 'l':
+                        graphics_context_set_stroke_color(ctx, COLOR_SLEETY_NIGHT);
+                        break;
+                    case '_':
+                    case '?':
+                    default:
+                        continue; // don't draw clear segments!
+                }
+            } else {
+                switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
+                    case 'r':
+                        graphics_context_set_stroke_color(ctx, COLOR_RAINY_DAY);
+                        break;
+                    case 's':
+                        graphics_context_set_stroke_color(ctx, COLOR_SNOWY_DAY);
+                        break;
+                    case 'l':
+                        graphics_context_set_stroke_color(ctx, COLOR_SLEETY_DAY);
+                        break;
+                    case '_':
+                    case '?':
+                    default:
+                        continue; // don't draw clear segments!
+                }
+            }
+            int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+4;
+            graphics_context_set_stroke_width(ctx, width);
+            GRect r2 = grect_crop(fcst_bounds, temp + width/2);
+            graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
+        }
+        return;
+    }
+    #endif
 }
 
 // Analog hands drawing
@@ -522,6 +647,7 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
     int minHand = (tick_time->tm_min * 6);
     int minAngle = DEG_TO_TRIGANGLE(minHand);
 
+    #ifdef PBL_RECT
     // Draw correct clock markings
     {
         for (int i = 0; i < 12; i++) {
@@ -537,6 +663,7 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
             graphics_draw_line(ctx, pt1, pt2);
         }
     }
+    #endif
 
     // Draw hub shadow
     graphics_context_set_fill_color(ctx, GColorBlack);
@@ -583,7 +710,6 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
     graphics_fill_circle(ctx, center, 2);
 
 }
-
 
 
 // tick has occurred 
@@ -743,30 +869,56 @@ static void main_window_load(Window *window) {
     int w = window_bounds.size.w;
     int h = window_bounds.size.h;
 
-    //GRect cityRect = GRect(20, 15, 100, 25);
-    GRect tempRect = GRect(w - 50 - 18, 15, 50, 20);
-    GRect forecastHighLowRect = GRect(w - 83, 32, 65, 33);
-    GRect timeRect = GRect(0, h/2-30, w, 50);
-    GRect stepRect = GRect(20, h-38, w - 40, 20);
-
-    GRect conditionRect = GRect(18,18, 26,26);    
-    GRect btRect = GRect(w/2-10, 20, 20, 20);
-    GRect batteryRect = GRect(23, h-38, 40, 20);
-
-    GRect dateRect;
-    GTextAlignment dateAlign;
-
-    if (settings.Analog) {
-        dateRect = GRect(20, h-38, w, 30);
-        dateAlign = GTextAlignmentLeft;
-    } else {
-        dateRect = GRect(0, h/2+15, w, 30);
-        dateAlign = GTextAlignmentCenter;
-    }
-
+    #ifdef PBL_RECT
+        //GRect cityRect = GRect(20, 15, 100, 25);
+        GRect tempRect = GRect(w - 50 - 18, 15, 50, 20);
+        GRect forecastHighLowRect = GRect(w - 83, 32, 65, 33);
+        GRect timeRect = GRect(0, h/2-30, w, 50);
+        GRect stepRect = GRect(20, h-38, w - 40, 20);
+        GRect analogRect = GRect(0, 0, w, h);
+    
+        GRect conditionRect = GRect(18,18, 26,26);    
+        GRect btRect = GRect(w/2-10, h-38, 20, 20);
+        GRect batteryRect = GRect(23, h-38, 40, 20);
+        GRect dateRect;
+        GTextAlignment dateAlign;
+        if (settings.Analog) {
+            dateRect = GRect(20, h-38, w, 30);
+            dateAlign = GTextAlignmentLeft;
+        } else {
+            dateRect = GRect(0, h/2+15, w, 30);
+            dateAlign = GTextAlignmentCenter;
+        }
+    #else
+        //GRect cityRect = GRect(20, 15, 100, 25);
+        GRect tempRect = GRect(w - 100, 25, 50, 20);
+        GRect forecastHighLowRect = GRect(w - 108, 39, 65, 33);
+        GRect timeRect = GRect(0, h/2-30, w, 50);
+        GRect stepRect = GRect(w/2, h-55, 40, 20);
+        int targetAnalogWidth = w - 18;
+        GRect analogRect = GRect(w/2-targetAnalogWidth/2, h/2-targetAnalogWidth/2, targetAnalogWidth, targetAnalogWidth);
+    
+        GRect conditionRect = GRect(48, 28, 26,26);    
+        GRect btRect = GRect(w/2-10, h-38, 20, 20);
+        GRect batteryRect = GRect(45, h-55, 40, 20);
+        GRect dateRect;
+        GTextAlignment dateAlign;
+        if (settings.Analog) {
+            dateRect = GRect(50, h-55, 60, 20);
+            dateAlign = GTextAlignmentLeft;
+        } else {
+            dateRect = GRect(0, h/2+15, w, 30);
+            dateAlign = GTextAlignmentCenter;
+        }
+    #endif
     s_time_font = fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS);
     s_date_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
     s_steps_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+    
+    // Analog hands layer
+    s_analog_layer = layer_create(analogRect);
+    calculate_perimiter(s_analog_layer);
+    layer_set_update_proc(s_analog_layer, analog_update_proc);
 
 
     // Conditions layer
@@ -790,6 +942,7 @@ static void main_window_load(Window *window) {
     // Create the BitmapLayer to display the GBitmap
     s_bt_icon_layer = bitmap_layer_create(btRect);
     bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
+    bitmap_layer_set_background_color(s_bt_icon_layer, GColorBlack);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bt_icon_layer));
     
      // Weather forecast layer
@@ -846,7 +999,6 @@ static void main_window_load(Window *window) {
     text_layer_set_text(s_battery_text_layer, "");
     text_layer_set_font(s_battery_text_layer, s_steps_font);
     text_layer_set_text_alignment(s_battery_text_layer, GTextAlignmentLeft);
-    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_battery_text_layer));
 
     // Steps layer
     s_steps_layer = text_layer_create(stepRect);
@@ -858,10 +1010,6 @@ static void main_window_load(Window *window) {
     #if defined(PBL_HEALTH)
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_steps_layer));
     #endif
-
-    // Analog hands layer
-    s_analog_layer = layer_create(window_bounds);
-    layer_set_update_proc(s_analog_layer, analog_update_proc);
 
     // Things that are different if you're analog vs digital
     if (!settings.Analog) layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
@@ -884,6 +1032,7 @@ static void main_window_unload(Window *window) {
     text_layer_destroy(s_date_layer);
     text_layer_destroy(s_steps_layer);
     text_layer_destroy(s_temp_layer);
+    text_layer_destroy(s_forecast_high_low_layer);
     text_layer_destroy(s_battery_text_layer);
     
     layer_destroy(s_analog_layer);
@@ -905,10 +1054,6 @@ static void init() {
 
     window_set_background_color(s_main_window, COLOR_WINDOW);
 
-
-    Layer* window_layer = window_get_root_layer(s_main_window);
-    calculate_perimiter(window_layer);
-
     // Register with Event Services
     tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
     battery_state_service_subscribe(battery_callback);
@@ -922,7 +1067,6 @@ static void init() {
     #else
     APP_LOG(APP_LOG_LEVEL_ERROR, "Health not available!");
     #endif
-
 
     app_message_register_inbox_received(inbox_received_callback);
     app_message_register_inbox_dropped(inbox_dropped_callback);

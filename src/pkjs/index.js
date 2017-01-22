@@ -2,7 +2,7 @@ var space = require('./space');
 
 
 // Listen for when an AppMessage is received
-// this is a once-every-15 min ping for new weather data
+// this is a once-every-30 min ping for new weather data
 Pebble.addEventListener('appmessage',
                         function(e) {
                             console.log('AppMessage received!');
@@ -58,7 +58,7 @@ function getCity(lat, lon) {
 
 function getWeather(lat, lon) {
     
-    var apiKey = settings.CFG_DARKSKY_KEY;
+    var apiKey = "a"+(640-2)+"ccce"+(100-15)+"ddf0"+"0d83f9a0c9a"+"d"+(7*7)+"cc00"; //i know this is open source and in the clear, but please get your own key if you fork this. I'm paying for this out of my own pocket.
     var units = settings.CFG_CELSIUS ? 'si' : 'us';
 
     if (apiKey !== "") {
@@ -211,7 +211,7 @@ var clayConfig = require('./config');
 // Initialize Clay
 var clay = new Clay(clayConfig);
 
-var defaultSettings = {'CFG_OVERRIDE_LOC':false, 'CFG_ANALOG':false, 'CFG_CELSIUS':false, 'CFG_DARKSKY_KEY':'09a66d34ccc4feb9a2b56e3c6cfee527' };
+var defaultSettings = {'CFG_OVERRIDE_LOC':false, 'CFG_ANALOG':false, 'CFG_CELSIUS':false };
 var settings = {};
 
 function loadSettings() {

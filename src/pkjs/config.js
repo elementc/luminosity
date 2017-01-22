@@ -36,10 +36,8 @@ module.exports = [
                 "label": "Use Celsius"
             },
             {
-                "type": "input",
-                "messageKey": "CFG_DARKSKY_KEY",
-                "defaultValue": "09a66d34ccc4feb9a2b56e3c6cfee527",
-                "label": "Dark Sky API Key (please use your own, if you can)",
+                "type": "text",
+                "defaultValue": "Weather data is <a href='https://darksky.net/poweredby/'>Powered by Dark Sky.</a> It costs the developer about a dollar per day to access this weather data. Please consider <a href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AU8HEZGRU3P2L'>donating a dollar or two</a> if you like this face."
             }
         ]
     }, 
