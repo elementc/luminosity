@@ -15,7 +15,7 @@ Thickness of the precipitation ring indicates intensity- a short, thick band of 
 
 Bluetooth connectivity alerts are present. Feel free to email with feature requests- casey@spacewalkpublishing.us.
 
-If you have a darksky.io key, please use your own. 
+Weather data powered by Dark Sky. If you fork this app, please replace my key with your own. 
 
 Design heavily inspired by Krona Sunlight, an Android Wear face.
 
