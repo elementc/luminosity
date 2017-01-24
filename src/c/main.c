@@ -71,6 +71,8 @@
 // Define our settings struct
 typedef struct ClaySettings {
     bool Analog;
+    int sunrise;
+    int sunset;
 } ClaySettings;
 
 // An instance of the struct
@@ -140,7 +142,8 @@ static void prv_update_display() {
 
         layer_set_frame(text_layer_get_layer(s_date_layer), date_layer_rect_analog);
         text_layer_set_text_alignment(s_date_layer, GTextAlignmentLeft);
-    } else {
+    } 
+    else {
         layer_add_child(winrl, text_layer_get_layer(s_time_layer));  
         layer_add_child(winrl, text_layer_get_layer(s_battery_text_layer));  
         layer_remove_from_parent(s_analog_layer);
@@ -153,12 +156,16 @@ static void prv_update_display() {
 // Initialize the default settings
 static void prv_default_settings() {
     settings.Analog = false;
+    settings.sunrise = 7;
+    settings.sunset = 19;
 }
 
 // Read settings from persistent storage
 static void prv_load_settings() {
     prv_default_settings();
     persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+    s_sunrise = settings.sunrise;
+    s_sunset = settings.sunset;
 }
 
 // Save the settings to persistent storage
@@ -730,6 +737,23 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         settings.Analog = cfg_analog_tuple->value->int32 == 1;
         changedSettings = true;
     }
+    
+    // space data
+    // Read tuples for data
+    Tuple *sunrise_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNRISE);
+    Tuple *sunset_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNSET);
+
+    if(sunrise_tuple) {
+        APP_LOG(APP_LOG_LEVEL_INFO, "Inbox recieved space data.");
+        s_sunset = sunset_tuple->value->int32;
+        s_sunrise = sunrise_tuple->value->int32;
+        settings.sunrise = s_sunrise;
+        settings.sunset = s_sunset;
+        s_space_ready = true;
+        changedSettings = true;
+        layer_mark_dirty(s_forecast_layer);
+    }
+
 
     if (changedSettings) {
         prv_save_settings();
@@ -779,19 +803,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         layer_mark_dirty(s_forecast_layer);
 
     }
-    // space data
-    // Read tuples for data
-    Tuple *sunrise_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNRISE);
-    Tuple *sunset_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNSET);
-
-    if(sunrise_tuple) {
-        APP_LOG(APP_LOG_LEVEL_INFO, "Inbox recieved space data.");
-        s_sunset = sunset_tuple->value->int32;
-        s_sunrise = sunrise_tuple->value->int32;
-        s_space_ready = true;
-        layer_mark_dirty(s_forecast_layer);
-    }
-
+    
 }
 
 static char reasonStr[20];
@@ -1042,7 +1054,7 @@ static void main_window_unload(Window *window) {
 static void init() {
     prv_load_settings();
 
-    s_space_ready = false;
+    s_space_ready = true;
     s_weather_ready = false;
 
     s_main_window = window_create();
