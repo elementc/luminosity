@@ -33,7 +33,7 @@ module.exports = [
                 "type": "toggle",
                 "messageKey": "CFG_CELSIUS",
                 "defaultValue": false,
-                "label": "Use Celsius"
+                "label": "Use metric units (temp in celsius, wind in m/s instead of temp in farenheit, wind in mph)"
             },
             {
                 "type": "text",

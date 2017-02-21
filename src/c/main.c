@@ -1,76 +1,16 @@
 #include <pebble.h>
-
-#if defined(PBL_COLOR)
-
-#define COLOR_WINDOW GColorBlack
-#define COLOR_TIME GColorWhite
-#define COLOR_DATE GColorWhite
-#define COLOR_TEMP GColorWhite
-#define COLOR_STEPS GColorWhite
-#define COLOR_BATT GColorWhite
-
-#define COLOR_24H_LINES GColorBlack
-#define COLOR_24H_CURRENT GColorRed
-
-#define COLOR_NIGHT GColorLavenderIndigo
-#define COLOR_NIGHT_PARTLY GColorIndigo
-#define COLOR_NIGHT_CLOUDY GColorDarkGray
-#define COLOR_DAY GColorIcterine
-#define COLOR_DAY_PARTLY GColorPastelYellow
-#define COLOR_DAY_CLOUDY GColorLightGray
-
-#define COLOR_RAINY_DAY GColorBlue
-#define COLOR_SNOWY_DAY GColorWhite
-#define COLOR_SLEETY_DAY GColorCeleste
-#define COLOR_RAINY_NIGHT GColorBlue
-#define COLOR_SNOWY_NIGHT GColorWhite
-#define COLOR_SLEETY_NIGHT GColorCeleste
-
-#else 
-
-#define COLOR_WINDOW GColorBlack
-#define COLOR_TIME GColorWhite
-#define COLOR_DATE GColorWhite
-#define COLOR_TEMP GColorWhite
-#define COLOR_STEPS GColorWhite
-#define COLOR_BATT GColorWhite
-
-#define COLOR_24H_LINES GColorBlack
-#define COLOR_24H_CURRENT GColorWhite
-
-#define COLOR_NIGHT GColorLightGray
-#define COLOR_NIGHT_PARTLY GColorLightGray
-#define COLOR_NIGHT_CLOUDY GColorLightGray
-#define COLOR_DAY GColorWhite
-#define COLOR_DAY_PARTLY GColorWhite
-#define COLOR_DAY_CLOUDY GColorWhite
-
-#define COLOR_RAINY_DAY GColorLightGray
-#define COLOR_SNOWY_DAY GColorLightGray
-#define COLOR_SLEETY_DAY GColorLightGray
-#define COLOR_RAINY_NIGHT GColorWhite
-#define COLOR_SNOWY_NIGHT GColorWhite
-#define COLOR_SLEETY_NIGHT GColorWhite
-
-#endif
-
-#ifdef PBL_RECT
-#define NO_WEATHER_SKY_LINE_WIDTH 4
-#else
-#define NO_WEATHER_SKY_LINE_WIDTH 8
-#endif
-
-#define WIDTH_24H_LINES 1
-#define WIDTH_24H_LINES_CURRENT 3
-
-#define TRI_W 8
+#include "src/c/color_palatte.h"
+#include "src/c/layout_constants.h"
 
 // Persistent storage key
 #define SETTINGS_KEY 1
 
+
 // Define our settings struct
 typedef struct ClaySettings {
     bool Analog;
+    bool Metric;
+    bool Knots;
     int sunrise;
     int sunset;
 } ClaySettings;
@@ -93,9 +33,14 @@ static char forecast_clouds_str[25];
 static char forecast_precip_type_str[25];
 static char forecast_precip_intensity_str[25];
 static char forecast_temp_str[25];
+static char forecast_wind_intensity_str[25];
+static char wind_direction[6];
+static char conditons_string[35];
+static int temperature, tempHigh, tempLow, windSpeed, windSpeedHigh, windSpeedLow, windBearing;
 static bool s_weather_ready;
 static Layer *s_forecast_layer;
 static BitmapLayer *s_conditions_layer;
+static bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
 static TextLayer *s_time_layer, *s_date_layer;
@@ -128,34 +73,30 @@ static void prv_update_display() {
     GRect window_bounds = layer_get_unobstructed_bounds(winrl);
     int w = window_bounds.size.w;
     int h = window_bounds.size.h;
-    #ifdef PBL_RECT
-        GRect date_layer_rect_analog = GRect(20, h-38, w, 30);
-    #else
-        GRect date_layer_rect_analog = GRect(45, h-55, 60, 20);
-    #endif
-        GRect date_layer_rect_digital =  GRect(0, h/2+15, w, 30);
-
+        
     if (settings.Analog) {
         layer_remove_from_parent(text_layer_get_layer(s_time_layer));
         layer_remove_from_parent(text_layer_get_layer(s_battery_text_layer));
         layer_add_child(winrl, s_analog_layer);
 
-        layer_set_frame(text_layer_get_layer(s_date_layer), date_layer_rect_analog);
-        text_layer_set_text_alignment(s_date_layer, GTextAlignmentLeft);
+        layer_set_frame(text_layer_get_layer(s_date_layer), DATE_LAYER_ANALOG);
+        text_layer_set_text_alignment(s_date_layer, DATE_ALIGN_ANALOG);
     } 
     else {
         layer_add_child(winrl, text_layer_get_layer(s_time_layer));  
         layer_add_child(winrl, text_layer_get_layer(s_battery_text_layer));  
         layer_remove_from_parent(s_analog_layer);
 
-        layer_set_frame(text_layer_get_layer(s_date_layer), date_layer_rect_digital);
-        text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+        layer_set_frame(text_layer_get_layer(s_date_layer), DATE_LAYER_DIGITAL);
+        text_layer_set_text_alignment(s_date_layer, DATE_ALIGN_DIGITAL);
     }
 }
 
 // Initialize the default settings
 static void prv_default_settings() {
     settings.Analog = false;
+    settings.Metric = false;
+    settings.Knots = false;
     settings.sunrise = 7;
     settings.sunset = 19;
 }
@@ -174,7 +115,9 @@ static void prv_save_settings() {
     prv_update_display();
 }
 
+#ifdef PBL_RECT
 
+// angle figurer for square pebbles
 static GPoint hours(int hour, int w, int h, int b){
     w -= b*2;
     h -= b*2;
@@ -233,6 +176,16 @@ static GPoint hours(int hour, int w, int h, int b){
     }
 }
 
+#else
+
+// for round pebbles, figure out the angle for a particular location
+static int hr_to_a(int hour){
+    return DEG_TO_TRIGANGLE(
+        180 + (15 * hour)
+    );
+}
+
+#endif 
 
 // Triggered when bluetooth connects/disconnects
 static void bluetooth_callback(bool connected) {
@@ -328,7 +281,10 @@ static void update_time() {
 
     // Show the date
     static char date_buffer[16];
-    strftime(date_buffer, sizeof(date_buffer), "%b %e", tick_time);
+    if (settings.Analog)
+        strftime(date_buffer, sizeof(date_buffer), "%a\n%b %e", tick_time);
+    else
+        strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
     text_layer_set_text(s_date_layer, date_buffer);
 
     if(tick_time->tm_min % 30 == 0) {
@@ -359,12 +315,6 @@ static void calculate_perimiter(Layer* layer) {
     lowerright = halftop + sidecount;
     lowerleft = halftop + sidecount + topcount;
     upperleft = halftop + sidecount + topcount + sidecount;
-}
-
-static int hr_to_a(int hour){
-    return DEG_TO_TRIGANGLE(
-        180 + (15 * hour)
-    );
 }
 
 // Draw the 24 hour lines
@@ -412,13 +362,13 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
 // Draw forecast ring
 static void forecast_update_proc(Layer* layer, GContext* ctx) {
     GRect fcst_bounds = layer_get_unobstructed_bounds(layer);
-    int w = fcst_bounds.size.w;
-    int h = fcst_bounds.size.h;
 
     time_t temp = time(NULL); 
     struct tm *tick_time = localtime(&temp);
     int hour = tick_time->tm_hour;
     #ifdef PBL_RECT
+    int w = fcst_bounds.size.w;
+    int h = fcst_bounds.size.h;
     if (!s_space_ready) //if we have no space, we can do neither
         return;
     else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
@@ -486,54 +436,59 @@ static void forecast_update_proc(Layer* layer, GContext* ctx) {
             graphics_fill_rect(ctx, r1, 0, GCornerNone);  
             
             // inner (precip) ring
-                
-            //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-            if (i > s_sunset || i <= s_sunrise){
-                switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                    case 'r':
-                        graphics_context_set_fill_color(ctx, COLOR_RAINY_NIGHT);
-                        break;
-                    case 's':
-                        graphics_context_set_fill_color(ctx, COLOR_SNOWY_NIGHT);
-                        break;
-                    case 'l':
-                        graphics_context_set_fill_color(ctx, COLOR_SLEETY_NIGHT);
-                        break;
-                    case '_':
-                    case '?':
-                    default:
-                        continue; // don't draw clear segments!
-                }
-            } else {
-                switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                    case 'r':
-                        graphics_context_set_fill_color(ctx, COLOR_RAINY_DAY);
-                        break;
-                    case 's':
-                        graphics_context_set_fill_color(ctx, COLOR_SNOWY_DAY);
-                        break;
-                    case 'l':
-                        graphics_context_set_fill_color(ctx, COLOR_SLEETY_DAY);
-                        break;
-                    case '_':
-                    case '?':
-                    default:
-                        continue; // don't draw clear segments!
-                }
+            if (s_forecast_layer_displaying_wind){
+                // write method for displaying wind data
             }
-            int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+2;
-            p1 = hours(i, w, h, temp);
-            p2 = hours(i+1, w, h, temp);
-            if (i < 3 || i >= 21) //bottom
-                r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
-            else if (i >=3 && i < 9) //left side
-                r1 = GRect(p1.x , p1.y, width, p2.y - p1.y); 
-            else if (i >= 9 && i < 15) //top
-                r1 = GRect(p1.x, p1.y , p2.x-p1.x, width);
-            else //right side
-                r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
-            
-            graphics_fill_rect(ctx, r1, 0, GCornerNone);           
+            else {
+                //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
+                if (i > s_sunset || i <= s_sunrise){
+                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
+                        case 'r':
+                            graphics_context_set_fill_color(ctx, COLOR_RAINY_NIGHT);
+                            break;
+                        case 's':
+                            graphics_context_set_fill_color(ctx, COLOR_SNOWY_NIGHT);
+                            break;
+                        case 'l':
+                            graphics_context_set_fill_color(ctx, COLOR_SLEETY_NIGHT);
+                            break;
+                        case '_':
+                        case '?':
+                        default:
+                            continue; // don't draw clear segments!
+                    }
+                } 
+                else {
+                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
+                        case 'r':
+                            graphics_context_set_fill_color(ctx, COLOR_RAINY_DAY);
+                            break;
+                        case 's':
+                            graphics_context_set_fill_color(ctx, COLOR_SNOWY_DAY);
+                            break;
+                        case 'l':
+                            graphics_context_set_fill_color(ctx, COLOR_SLEETY_DAY);
+                            break;
+                        case '_':
+                        case '?':
+                        default:
+                            continue; // don't draw clear segments!
+                    }
+                }
+                int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+2;
+                p1 = hours(i, w, h, temp);
+                p2 = hours(i+1, w, h, temp);
+                if (i < 3 || i >= 21) //bottom
+                    r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
+                else if (i >=3 && i < 9) //left side
+                    r1 = GRect(p1.x , p1.y, width, p2.y - p1.y); 
+                else if (i >= 9 && i < 15) //top
+                    r1 = GRect(p1.x, p1.y , p2.x-p1.x, width);
+                else //right side
+                    r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
+                
+                graphics_fill_rect(ctx, r1, 0, GCornerNone);  
+            }
         }
         return;
     }
@@ -585,45 +540,62 @@ static void forecast_update_proc(Layer* layer, GContext* ctx) {
             GRect r1 = grect_crop(fcst_bounds, temp/2);
             graphics_draw_arc(ctx, r1, GOvalScaleModeFitCircle, p1, p2);
             
-            // inner (precip) ring      
-            //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-            if (i > s_sunset || i <= s_sunrise){
-                switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                    case 'r':
-                        graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
-                        break;
-                    case 's':
-                        graphics_context_set_stroke_color(ctx, COLOR_SNOWY_NIGHT);
-                        break;
-                    case 'l':
-                        graphics_context_set_stroke_color(ctx, COLOR_SLEETY_NIGHT);
-                        break;
-                    case '_':
-                    case '?':
-                    default:
-                        continue; // don't draw clear segments!
+            // inner ring   
+            if (s_forecast_layer_displaying_wind){
+                //write method for displaying wind data
+                if (i > s_sunset || i <= s_sunrise){
+                    graphics_context_set_stroke_color(ctx, COLOR_WIND_NIGHT);
                 }
-            } else {
-                switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                    case 'r':
-                        graphics_context_set_stroke_color(ctx, COLOR_RAINY_DAY);
-                        break;
-                    case 's':
-                        graphics_context_set_stroke_color(ctx, COLOR_SNOWY_DAY);
-                        break;
-                    case 'l':
-                        graphics_context_set_stroke_color(ctx, COLOR_SLEETY_DAY);
-                        break;
-                    case '_':
-                    case '?':
-                    default:
-                        continue; // don't draw clear segments!
+                else {
+                    graphics_context_set_stroke_color(ctx, COLOR_WIND_DAY);  
                 }
+                int width = (forecast_wind_intensity_str[((24-hour)+i) % 24] - '0');
+                graphics_context_set_stroke_width(ctx, width);
+                GRect r2 = grect_crop(fcst_bounds, temp + width/2);
+                graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);    
             }
-            int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+4;
-            graphics_context_set_stroke_width(ctx, width);
-            GRect r2 = grect_crop(fcst_bounds, temp + width/2);
-            graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
+            else{
+                //precip data
+                //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
+                if (i > s_sunset || i <= s_sunrise){
+                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
+                        case 'r':
+                            graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
+                            break;
+                        case 's':
+                            graphics_context_set_stroke_color(ctx, COLOR_SNOWY_NIGHT);
+                            break;
+                        case 'l':
+                            graphics_context_set_stroke_color(ctx, COLOR_SLEETY_NIGHT);
+                            break;
+                        case '_':
+                        case '?':
+                        default:
+                            continue; // don't draw clear segments!
+                    }
+                } 
+                else {
+                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
+                        case 'r':
+                            graphics_context_set_stroke_color(ctx, COLOR_RAINY_DAY);
+                            break;
+                        case 's':
+                            graphics_context_set_stroke_color(ctx, COLOR_SNOWY_DAY);
+                            break;
+                        case 'l':
+                            graphics_context_set_stroke_color(ctx, COLOR_SLEETY_DAY);
+                            break;
+                        case '_':
+                        case '?':
+                        default:
+                            continue; // don't draw clear segments!
+                    }
+                }
+                int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+4;
+                graphics_context_set_stroke_width(ctx, width);
+                GRect r2 = grect_crop(fcst_bounds, temp + width/2);
+                graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
+            }
         }
         return;
     }
@@ -729,13 +701,14 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received message");
 
-    // Check for settings tuples
-    bool changedSettings = false;
 
     Tuple *cfg_analog_tuple = dict_find(iterator, MESSAGE_KEY_CFG_ANALOG);
+    Tuple *cfg_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CFG_CELSIUS);
     if (cfg_analog_tuple) {
         settings.Analog = cfg_analog_tuple->value->int32 == 1;
-        changedSettings = true;
+        settings.Metric = cfg_celsius_tuple->value->int32 == 1;
+        prv_save_settings();
+        send_message();
     }
     
     // space data
@@ -750,14 +723,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         settings.sunrise = s_sunrise;
         settings.sunset = s_sunset;
         s_space_ready = true;
-        changedSettings = true;
         layer_mark_dirty(s_forecast_layer);
-    }
-
-
-    if (changedSettings) {
         prv_save_settings();
-        send_message();
     }
 
 
@@ -774,6 +741,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     Tuple *forecast_precip_type_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_TYPE);
     Tuple *forecast_precip_intensity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_INTENSITY);
     Tuple *forecast_temp_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_TEMP);
+    Tuple *forecast_wind_intensity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_WIND_INTENSITY);
 
     // If all data is available, use it
     if(temp_tuple) {
@@ -785,6 +753,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         snprintf(forecast_precip_type_str, sizeof(forecast_precip_type_str), "%s", forecast_precip_type_tuple->value->cstring);
         snprintf(forecast_precip_intensity_str, sizeof(forecast_precip_intensity_str), "%s", forecast_precip_intensity_tuple->value->cstring);
         snprintf(forecast_temp_str, sizeof(forecast_temp_str), "%s", forecast_temp_tuple->value->cstring);
+        snprintf(forecast_wind_intensity_str, sizeof(forecast_wind_intensity_str), "%s", forecast_wind_intensity_tuple->value->cstring);
         text_layer_set_text(s_temp_layer, temperature_buffer);
         text_layer_set_text(s_forecast_high_low_layer, forecast_high_low_buffer);
 
@@ -882,7 +851,6 @@ static void main_window_load(Window *window) {
     int h = window_bounds.size.h;
 
     #ifdef PBL_RECT
-        //GRect cityRect = GRect(20, 15, 100, 25);
         GRect tempRect = GRect(w - 50 - 18, 15, 50, 20);
         GRect forecastHighLowRect = GRect(w - 83, 32, 65, 33);
         GRect timeRect = GRect(0, h/2-30, w, 50);
@@ -892,17 +860,7 @@ static void main_window_load(Window *window) {
         GRect conditionRect = GRect(18,18, 26,26);    
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(23, h-38, 40, 20);
-        GRect dateRect;
-        GTextAlignment dateAlign;
-        if (settings.Analog) {
-            dateRect = GRect(20, h-38, w, 30);
-            dateAlign = GTextAlignmentLeft;
-        } else {
-            dateRect = GRect(0, h/2+15, w, 30);
-            dateAlign = GTextAlignmentCenter;
-        }
     #else
-        //GRect cityRect = GRect(20, 15, 100, 25);
         GRect tempRect = GRect(w - 100, 25, 50, 20);
         GRect forecastHighLowRect = GRect(w - 108, 39, 65, 33);
         GRect timeRect = GRect(0, h/2-30, w, 50);
@@ -913,16 +871,18 @@ static void main_window_load(Window *window) {
         GRect conditionRect = GRect(48, 28, 26,26);    
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(45, h-55, 40, 20);
-        GRect dateRect;
-        GTextAlignment dateAlign;
-        if (settings.Analog) {
-            dateRect = GRect(50, h-55, 60, 20);
-            dateAlign = GTextAlignmentLeft;
-        } else {
-            dateRect = GRect(0, h/2+15, w, 30);
-            dateAlign = GTextAlignmentCenter;
-        }
+
     #endif
+    GRect dateRect;
+    GTextAlignment dateAlign;
+    if (settings.Analog) {
+        dateRect = DATE_LAYER_ANALOG;
+        dateAlign = DATE_ALIGN_ANALOG;
+    } else {
+        dateRect = DATE_LAYER_DIGITAL;
+        dateAlign = DATE_ALIGN_DIGITAL;
+    }
+    
     s_time_font = fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS);
     s_date_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
     s_steps_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
@@ -1056,6 +1016,7 @@ static void init() {
 
     s_space_ready = true;
     s_weather_ready = false;
+   // s_forecast_layer_displaying_wind = true;
 
     s_main_window = window_create();
     window_set_window_handlers(s_main_window, (WindowHandlers) {
@@ -1085,8 +1046,8 @@ static void init() {
     app_message_register_outbox_failed(outbox_failed_callback);
     app_message_register_outbox_sent(outbox_sent_callback);
 
-    const int inbox_size = 170;
-    const int outbox_size = 150;
+    const int inbox_size = 250;
+    const int outbox_size = 5;
     app_message_open(inbox_size, outbox_size);
 
     connection_service_subscribe((ConnectionHandlers) {

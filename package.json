@@ -20,7 +20,6 @@
             "SPACE_SUNSET",
             "FORECAST_CLOUDS",
             "CFG_CELSIUS",
-            "CFG_DARKSKY_KEY",
             "CFG_ANALOG",
             "FORECAST_PRECIP_TYPE",
             "FORECAST_PRECIP_INTENSITY",
@@ -29,7 +28,12 @@
             "CFG_LAT",
             "CFG_LON",
             "FORECAST_HIGH",
-            "FORECAST_LOW"
+            "FORECAST_LOW",
+            "FORECAST_WIND_INTENSITY",
+            "WIND_BEARING",
+            "WIND_SPEED",
+            "FORECAST_WIND_HIGH",
+            "FORECAST_WIND_LOW"
         ],
         "projectType": "native",
         "resources": {
@@ -122,5 +126,5 @@
             "watchface": true
         }
     },
-    "version": "2.1.0"
+    "version": "2.3.0"
 }
