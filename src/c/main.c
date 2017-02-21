@@ -66,6 +66,37 @@ static char* condition_icons[] = {
 
 static GBitmap* s_condition_icon_bitmap[10];
 
+//forward declare this method
+static void send_message();
+
+// Triggered when the time has changed
+static void update_time() {
+    time_t temp = time(NULL); 
+    struct tm *tick_time = localtime(&temp);
+
+    // Create a long-lived buffer, and show the time
+    static char buffer[] = "00:00";
+    if(clock_is_24h_style()) {
+        strftime(buffer, sizeof(buffer), "%H:%M", tick_time);
+    } else {
+        strftime(buffer, sizeof(buffer), "%I:%M", tick_time);
+    }
+    text_layer_set_text(s_time_layer, buffer);
+
+    if (settings.Analog) layer_mark_dirty(s_analog_layer);
+
+    // Show the date
+    static char date_buffer[16];
+    if (settings.Analog)
+        strftime(date_buffer, sizeof(date_buffer), "%a\n%b %e", tick_time);
+    else
+        strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
+    text_layer_set_text(s_date_layer, date_buffer);
+
+    if(tick_time->tm_min % 30 == 0) {
+        send_message();
+    }
+}
 
 static void prv_update_display() {
     // hide and display things according to settings
@@ -90,6 +121,7 @@ static void prv_update_display() {
         layer_set_frame(text_layer_get_layer(s_date_layer), DATE_LAYER_DIGITAL);
         text_layer_set_text_alignment(s_date_layer, DATE_ALIGN_DIGITAL);
     }
+    update_time();
 }
 
 // Initialize the default settings
@@ -262,36 +294,6 @@ static void send_message() {
     // Send the message!
     app_message_outbox_send();
 }
-
-// Triggered when the time has changed
-static void update_time() {
-    time_t temp = time(NULL); 
-    struct tm *tick_time = localtime(&temp);
-
-    // Create a long-lived buffer, and show the time
-    static char buffer[] = "00:00";
-    if(clock_is_24h_style()) {
-        strftime(buffer, sizeof(buffer), "%H:%M", tick_time);
-    } else {
-        strftime(buffer, sizeof(buffer), "%I:%M", tick_time);
-    }
-    text_layer_set_text(s_time_layer, buffer);
-
-    if (settings.Analog) layer_mark_dirty(s_analog_layer);
-
-    // Show the date
-    static char date_buffer[16];
-    if (settings.Analog)
-        strftime(date_buffer, sizeof(date_buffer), "%a\n%b %e", tick_time);
-    else
-        strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
-    text_layer_set_text(s_date_layer, date_buffer);
-
-    if(tick_time->tm_min % 30 == 0) {
-        send_message();
-    }
-}
-
 
 static int upperright, lowerright, lowerleft, upperleft, step;
 static GRect bounds;
