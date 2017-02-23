@@ -1,0 +1,10 @@
+#pragma once
+#include <pebble.h>
+#include "src/c/declarations.h"
+#include "src/c/color_palette.h"
+#include "src/c/settings.h"
+#include "src/c/messaging.h"
+#include "src/c/layout_constants.h"
+#include "src/c/update.h"
+#include "src/c/forecast.h"
+#include "src/c/drawing.h"

@@ -1,226 +1,9 @@
-#include <pebble.h>
-#include "src/c/color_palatte.h"
-#include "src/c/layout_constants.h"
-
-// Persistent storage key
-#define SETTINGS_KEY 1
+#include "src/c/luminosity.h"
 
 
-// Define our settings struct
-typedef struct ClaySettings {
-    bool Analog;
-    bool Metric;
-    bool Knots;
-    int sunrise;
-    int sunset;
-} ClaySettings;
-
-// An instance of the struct
-static ClaySettings settings;
-
-/* Main */
-static Window *s_main_window;
-
-/* Battery */
-static TextLayer *s_battery_text_layer;
-static char s_battery_string[6];
-static int s_battery_level;
-
-/* Weather */
-static TextLayer *s_temp_layer;
-static TextLayer *s_forecast_high_low_layer;
-static char forecast_clouds_str[25];
-static char forecast_precip_type_str[25];
-static char forecast_precip_intensity_str[25];
-static char forecast_temp_str[25];
-static char forecast_wind_intensity_str[25];
-static char wind_direction[6];
-static char conditons_string[35];
-static int temperature, tempHigh, tempLow, windSpeed, windSpeedHigh, windSpeedLow, windBearing;
-static bool s_weather_ready;
-static Layer *s_forecast_layer;
-static BitmapLayer *s_conditions_layer;
-static bool s_forecast_layer_displaying_wind;
-
-/* Time and date */
-static TextLayer *s_time_layer, *s_date_layer;
-static GFont s_time_font, s_date_font;
-static Layer *s_analog_layer, *s_24hour_layer;
-
-/* Steps */
-static TextLayer *s_steps_layer;
-static GFont s_steps_font;
-static char steps_str[12];
-
-/* Bluetooth */
-static BitmapLayer *s_bt_icon_layer;
-static GBitmap *s_bt_icon_bitmap;
-
-/* Space */
-static int s_sunset, s_sunrise;
-static bool s_space_ready;
-
-static char* condition_icons[] = {
-    "clear-day", "clear-night", "rain", "snow", "sleet", "wind", "fog", "cloudy", "partly-cloudy-day", "partly-cloudy-night"
-};
-
-static GBitmap* s_condition_icon_bitmap[10];
-
-//forward declare this method
-static void send_message();
-
-// Triggered when the time has changed
-static void update_time() {
-    time_t temp = time(NULL); 
-    struct tm *tick_time = localtime(&temp);
-
-    // Create a long-lived buffer, and show the time
-    static char buffer[] = "00:00";
-    if(clock_is_24h_style()) {
-        strftime(buffer, sizeof(buffer), "%H:%M", tick_time);
-    } else {
-        strftime(buffer, sizeof(buffer), "%I:%M", tick_time);
-    }
-    text_layer_set_text(s_time_layer, buffer);
-
-    if (settings.Analog) layer_mark_dirty(s_analog_layer);
-
-    // Show the date
-    static char date_buffer[16];
-    if (settings.Analog)
-        strftime(date_buffer, sizeof(date_buffer), "%a\n%b %e", tick_time);
-    else
-        strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
-    text_layer_set_text(s_date_layer, date_buffer);
-
-    if(tick_time->tm_min % 30 == 0) {
-        send_message();
-    }
-}
-
-static void prv_update_display() {
-    // hide and display things according to settings
-    Layer* winrl = window_get_root_layer(s_main_window);
-    GRect window_bounds = layer_get_unobstructed_bounds(winrl);
-    int w = window_bounds.size.w;
-    int h = window_bounds.size.h;
-        
-    if (settings.Analog) {
-        layer_remove_from_parent(text_layer_get_layer(s_time_layer));
-        layer_remove_from_parent(text_layer_get_layer(s_battery_text_layer));
-        layer_add_child(winrl, s_analog_layer);
-
-        layer_set_frame(text_layer_get_layer(s_date_layer), DATE_LAYER_ANALOG);
-        text_layer_set_text_alignment(s_date_layer, DATE_ALIGN_ANALOG);
-    } 
-    else {
-        layer_add_child(winrl, text_layer_get_layer(s_time_layer));  
-        layer_add_child(winrl, text_layer_get_layer(s_battery_text_layer));  
-        layer_remove_from_parent(s_analog_layer);
-
-        layer_set_frame(text_layer_get_layer(s_date_layer), DATE_LAYER_DIGITAL);
-        text_layer_set_text_alignment(s_date_layer, DATE_ALIGN_DIGITAL);
-    }
-    update_time();
-}
-
-// Initialize the default settings
-static void prv_default_settings() {
-    settings.Analog = false;
-    settings.Metric = false;
-    settings.Knots = false;
-    settings.sunrise = 7;
-    settings.sunset = 19;
-}
-
-// Read settings from persistent storage
-static void prv_load_settings() {
-    prv_default_settings();
-    persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
-    s_sunrise = settings.sunrise;
-    s_sunset = settings.sunset;
-}
-
-// Save the settings to persistent storage
-static void prv_save_settings() {
-    persist_write_data(SETTINGS_KEY, &settings, sizeof(settings));
-    prv_update_display();
-}
-
-#ifdef PBL_RECT
-
-// angle figurer for square pebbles
-static GPoint hours(int hour, int w, int h, int b){
-    w -= b*2;
-    h -= b*2;
-    switch (hour % 24) {
-        case 0:
-        return GPoint(3*w/6+b,h+b); // 0
-        case 1:
-        return GPoint(2*w/6+b,h+b); // 1
-        case 2:
-        return GPoint(1*w/6+b,h+b); // 2
-        case 3:
-        return GPoint(b,6*h/6+b); // 3
-        case 4:
-        return GPoint(b,5*h/6+b); // 4
-        case 5:
-        return GPoint(b,4*h/6+b); // 5
-        case 6:
-        return GPoint(b,3*h/6+b); // 6
-        case 7:
-        return GPoint(b,2*h/6+b); // 7
-        case 8:
-        return GPoint(b,1*h/6+b); // 8
-        case 9:
-        return GPoint(b,b); // 9
-        case 10:
-        return GPoint(1*w/6+b,b); // 10
-        case 11:
-        return GPoint(2*w/6+b,b); // 11
-        case 12:
-        return GPoint(3*w/6+b,b); // 12
-        case 13:
-        return GPoint(4*w/6+b,b); // 13
-        case 14:
-        return GPoint(5*w/6+b,b); // 14
-
-        case 15:
-        return GPoint(w+b,b); // 15
-
-        case 16:
-        return GPoint(w+b,1*h/6+b); // 16 
-        case 17:
-        return GPoint(w+b,2*h/6+b); // 17
-        case 18:
-        return GPoint(w+b,3*h/6+b); // 18
-        case 19:
-        return GPoint(w+b,4*h/6+b); // 19
-        case 20:
-        return GPoint(w+b,5*h/6+b); // 20
-        case 21:
-        return GPoint(w+b,h+b); // 21
-        case 22:
-        return GPoint(5*w/6+b,h+b); // 22
-        case 23:
-        default:
-        return GPoint(4*w/6+b,h+b); // 23
-    }
-}
-
-#else
-
-// for round pebbles, figure out the angle for a particular location
-static int hr_to_a(int hour){
-    return DEG_TO_TRIGANGLE(
-        180 + (15 * hour)
-    );
-}
-
-#endif 
 
 // Triggered when bluetooth connects/disconnects
-static void bluetooth_callback(bool connected) {
+ void bluetooth_callback(bool connected) {
     // Show icon if disconnected
     layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connected);
 
@@ -229,15 +12,14 @@ static void bluetooth_callback(bool connected) {
     }
 }
 
-
 // Triggered when the battery has changed level
-static void battery_callback(BatteryChargeState state) {
+ void battery_callback(BatteryChargeState state) {
     // Record the new battery level
     s_battery_level = state.charge_percent;
 
     // Update meter
     layer_mark_dirty(s_analog_layer);
-    
+
     // update text readout
     snprintf(s_battery_string, sizeof(s_battery_string), "%d%c", s_battery_level, '%');
     APP_LOG(APP_LOG_LEVEL_DEBUG, "battery updated");
@@ -245,7 +27,7 @@ static void battery_callback(BatteryChargeState state) {
     text_layer_set_text(s_battery_text_layer, s_battery_string);
 }
 
-static void health_handler(HealthEventType event, void *context) {
+ void health_handler(HealthEventType event, void *context) {
     // Which type of event occurred?
     switch(event) {
         case HealthEventSignificantUpdate:
@@ -258,11 +40,11 @@ static void health_handler(HealthEventType event, void *context) {
             time_t end = time(NULL);
             HealthServiceAccessibilityMask mask = health_service_metric_accessible(metric, start, end);
 
-            if(mask & HealthServiceAccessibilityMaskAvailable) {                
+            if(mask & HealthServiceAccessibilityMaskAvailable) {
                 int steps = (int)health_service_sum_today(metric);
 
                 if (steps > 999) {
-                    snprintf(steps_str, 12, "%d,%03d", steps/1000, steps%1000);            
+                    snprintf(steps_str, 12, "%d,%03d", steps/1000, steps%1000);
                 } else {
                     snprintf(steps_str, 12, "%d", steps);
                 }
@@ -281,46 +63,8 @@ static void health_handler(HealthEventType event, void *context) {
     }
 }
 
-// send an empty ping to get new weather data
-static void send_message() {
-
-    // Begin dictionary
-    DictionaryIterator *iter;
-    app_message_outbox_begin(&iter);
-
-    // Add a key-value pair
-    dict_write_uint8(iter, 0, 0);
-
-    // Send the message!
-    app_message_outbox_send();
-}
-
-static int upperright, lowerright, lowerleft, upperleft, step;
-static GRect bounds;
-static GPoint center;
-
-// perimiter calc
-static void calculate_perimiter(Layer* layer) {
-    bounds = layer_get_bounds(layer);    
-    center = grect_center_point(&bounds);
-
-    int perimiter = (bounds.size.w + bounds.size.h) * 2;
-    step = perimiter / 60;
-    int topcount = bounds.size.w / step;
-    int sidecount = bounds.size.h / step;
-
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Perimiter: %d, step: %d, topcount: %d, sidecount: %d", perimiter, step, topcount, sidecount);
-
-    int halftop = topcount / 2;
-
-    upperright = halftop;
-    lowerright = halftop + sidecount;
-    lowerleft = halftop + sidecount + topcount;
-    upperleft = halftop + sidecount + topcount + sidecount;
-}
-
 // Draw the 24 hour lines
-static void label_update_proc(Layer* layer, GContext* ctx) {
+ void label_update_proc(Layer* layer, GContext* ctx) {
     GRect bounds = layer_get_unobstructed_bounds(layer);
     #ifdef PBL_RECT
     graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
@@ -331,7 +75,7 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
         GPoint p2 = hours(i, bounds.size.w, bounds.size.h, 0);
         graphics_draw_line(ctx, p1, p2);
     }
-    time_t temp = time(NULL); 
+    time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
     int hour = tick_time->tm_hour;
     GPoint p1 = hours(hour, bounds.size.w, bounds.size.h, 17);
@@ -340,7 +84,7 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
     graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
     graphics_draw_line(ctx, p1, p2);
     #else
-    GRect innerBounds = grect_crop(bounds, 18);    
+    GRect innerBounds = grect_crop(bounds, 18);
     graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
     graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES);
     for (int i = 0; i < 24; i++) {
@@ -348,7 +92,7 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
         GPoint outer = gpoint_from_polar(bounds, GOvalScaleModeFillCircle, hr_to_a(i));
         graphics_draw_line(ctx, inner, outer);
     }
-    time_t temp = time(NULL); 
+    time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
     int hour = tick_time->tm_hour;
     GRect currentHourBounds = grect_crop(bounds, 20);
@@ -361,258 +105,15 @@ static void label_update_proc(Layer* layer, GContext* ctx) {
 
 }
 
-// Draw forecast ring
-static void forecast_update_proc(Layer* layer, GContext* ctx) {
-    GRect fcst_bounds = layer_get_unobstructed_bounds(layer);
-
-    time_t temp = time(NULL); 
-    struct tm *tick_time = localtime(&temp);
-    int hour = tick_time->tm_hour;
-    #ifdef PBL_RECT
-    int w = fcst_bounds.size.w;
-    int h = fcst_bounds.size.h;
-    if (!s_space_ready) //if we have no space, we can do neither
-        return;
-    else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
-        for (int i = 0; i< 24; i++){
-            int width = NO_WEATHER_SKY_LINE_WIDTH;
-            if (i > s_sunset || i <= s_sunrise){
-                //night color pick
-                graphics_context_set_fill_color(ctx, COLOR_NIGHT);
-            }else{
-                //day color pick
-                graphics_context_set_fill_color(ctx, COLOR_DAY);
-            }
-            GPoint p1 = hours(i, w, h, 0);
-            GPoint p2 = hours(i+1, w, h, 0);
-            GRect r1;
-            if (i < 3 || i >= 21) //bottom
-               r1 = GRect(p2.x, p1.y-width, p1.x - p2.x, width);
-            else if (i >=3 && i < 9) //left side
-                r1 = GRect(p1.x, p1.y, width, p2.y - p1.y); 
-            else if (i >= 9 && i < 15) //top
-                r1 = GRect(p1.x, p1.y, p2.x-p1.x, width);
-            else //right side
-                r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
-            
-            graphics_fill_rect(ctx, r1, 0, GCornerNone);
-        }
-        return;
-    }
-    else{ // full set of rings
-        for (int i = 0; i< 24; i++){
-            
-            //outer (light + temp + clouds) ring
-            int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
-            graphics_context_set_stroke_width(ctx, temp);
-            if (i > s_sunset || i <= s_sunrise){
-                //night color pick
-                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
-                    graphics_context_set_fill_color(ctx, COLOR_NIGHT);
-                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
-                    graphics_context_set_fill_color(ctx, COLOR_NIGHT_PARTLY);
-                else
-                    graphics_context_set_fill_color(ctx, COLOR_NIGHT_CLOUDY);
-            }else{
-                //day color pick
-                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
-                    graphics_context_set_fill_color(ctx, COLOR_DAY);
-                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
-                    graphics_context_set_fill_color(ctx, COLOR_DAY_PARTLY);
-                else
-                    graphics_context_set_fill_color(ctx, COLOR_DAY_CLOUDY);
-            }
-            GPoint p1 = hours(i, w, h, 0);
-            GPoint p2 = hours(i+1, w, h, 0);
-            
-            GRect r1;
-            if (i < 3 || i >= 21) //bottom
-                r1 = GRect(p2.x, p1.y-temp, p1.x - p2.x, temp);
-            else if (i >=3 && i < 9) //left side
-                r1 = GRect(p1.x, p1.y, temp, p2.y - p1.y); 
-            else if (i >= 9 && i < 15) //top
-                r1 = GRect(p1.x, p1.y, p2.x-p1.x, temp);
-            else //right side
-                r1 = GRect(p1.x - temp, p1.y, temp, p2.y - p1.y);
-            
-            graphics_fill_rect(ctx, r1, 0, GCornerNone);  
-            
-            // inner (precip) ring
-            if (s_forecast_layer_displaying_wind){
-                // write method for displaying wind data
-            }
-            else {
-                //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-                if (i > s_sunset || i <= s_sunrise){
-                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                        case 'r':
-                            graphics_context_set_fill_color(ctx, COLOR_RAINY_NIGHT);
-                            break;
-                        case 's':
-                            graphics_context_set_fill_color(ctx, COLOR_SNOWY_NIGHT);
-                            break;
-                        case 'l':
-                            graphics_context_set_fill_color(ctx, COLOR_SLEETY_NIGHT);
-                            break;
-                        case '_':
-                        case '?':
-                        default:
-                            continue; // don't draw clear segments!
-                    }
-                } 
-                else {
-                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                        case 'r':
-                            graphics_context_set_fill_color(ctx, COLOR_RAINY_DAY);
-                            break;
-                        case 's':
-                            graphics_context_set_fill_color(ctx, COLOR_SNOWY_DAY);
-                            break;
-                        case 'l':
-                            graphics_context_set_fill_color(ctx, COLOR_SLEETY_DAY);
-                            break;
-                        case '_':
-                        case '?':
-                        default:
-                            continue; // don't draw clear segments!
-                    }
-                }
-                int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+2;
-                p1 = hours(i, w, h, temp);
-                p2 = hours(i+1, w, h, temp);
-                if (i < 3 || i >= 21) //bottom
-                    r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
-                else if (i >=3 && i < 9) //left side
-                    r1 = GRect(p1.x , p1.y, width, p2.y - p1.y); 
-                else if (i >= 9 && i < 15) //top
-                    r1 = GRect(p1.x, p1.y , p2.x-p1.x, width);
-                else //right side
-                    r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
-                
-                graphics_fill_rect(ctx, r1, 0, GCornerNone);  
-            }
-        }
-        return;
-    }
-    #else
-    if (!s_space_ready) //if we have no space, we can do neither
-        return;
-    else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
-        GRect bounds = grect_crop(fcst_bounds, NO_WEATHER_SKY_LINE_WIDTH / 2);
-        for (int i = 0; i < 24; i++){
-             if (i > s_sunset || i <= s_sunrise){
-                //night color pick
-                graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
-            }
-            else{
-                //day color pick
-                graphics_context_set_stroke_color(ctx, COLOR_DAY);
-            }
-            graphics_context_set_stroke_width(ctx, NO_WEATHER_SKY_LINE_WIDTH);
-            graphics_draw_arc(ctx, bounds, GOvalScaleModeFitCircle, hr_to_a(i), hr_to_a(i+1));
-        }
-
-        return;
-    }
-    else{ //full set of rings
-        for (int i = 0; i< 24; i++){
-        //outer (light + temp + clouds) ring
-            int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 6;
-            graphics_context_set_stroke_width(ctx, temp);
-            if (i > s_sunset || i <= s_sunrise){
-                //night color pick
-                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
-                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
-                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
-                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
-                else
-                    graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
-            }
-            else{
-                //day color pick
-                if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
-                    graphics_context_set_stroke_color(ctx, COLOR_DAY);
-                else if (forecast_clouds_str[((24-hour) + i) % 24] == '1')
-                    graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
-                else
-                    graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
-            }
-            int p1 = hr_to_a(i);
-            int p2 = hr_to_a(i+1);
-            GRect r1 = grect_crop(fcst_bounds, temp/2);
-            graphics_draw_arc(ctx, r1, GOvalScaleModeFitCircle, p1, p2);
-            
-            // inner ring   
-            if (s_forecast_layer_displaying_wind){
-                //write method for displaying wind data
-                if (i > s_sunset || i <= s_sunrise){
-                    graphics_context_set_stroke_color(ctx, COLOR_WIND_NIGHT);
-                }
-                else {
-                    graphics_context_set_stroke_color(ctx, COLOR_WIND_DAY);  
-                }
-                int width = (forecast_wind_intensity_str[((24-hour)+i) % 24] - '0');
-                graphics_context_set_stroke_width(ctx, width);
-                GRect r2 = grect_crop(fcst_bounds, temp + width/2);
-                graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);    
-            }
-            else{
-                //precip data
-                //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-                if (i > s_sunset || i <= s_sunrise){
-                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                        case 'r':
-                            graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
-                            break;
-                        case 's':
-                            graphics_context_set_stroke_color(ctx, COLOR_SNOWY_NIGHT);
-                            break;
-                        case 'l':
-                            graphics_context_set_stroke_color(ctx, COLOR_SLEETY_NIGHT);
-                            break;
-                        case '_':
-                        case '?':
-                        default:
-                            continue; // don't draw clear segments!
-                    }
-                } 
-                else {
-                    switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
-                        case 'r':
-                            graphics_context_set_stroke_color(ctx, COLOR_RAINY_DAY);
-                            break;
-                        case 's':
-                            graphics_context_set_stroke_color(ctx, COLOR_SNOWY_DAY);
-                            break;
-                        case 'l':
-                            graphics_context_set_stroke_color(ctx, COLOR_SLEETY_DAY);
-                            break;
-                        case '_':
-                        case '?':
-                        default:
-                            continue; // don't draw clear segments!
-                    }
-                }
-                int width = (forecast_precip_intensity_str[((24-hour) + i) % 24] - '0')+4;
-                graphics_context_set_stroke_width(ctx, width);
-                GRect r2 = grect_crop(fcst_bounds, temp + width/2);
-                graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
-            }
-        }
-        return;
-    }
-    #endif
-}
-
 // Analog hands drawing
-static GPoint rayFrom(int tri, int radius) {
+ GPoint rayFrom(int tri, int radius) {
     GPoint ray = {center.x + sin_lookup(tri)*radius / TRIG_MAX_RATIO , center.y - cos_lookup(tri)*radius / TRIG_MAX_RATIO };
     return ray;
 }
 
-static void analog_update_proc(Layer *layer, GContext *ctx) {
+ void analog_update_proc(Layer *layer, GContext *ctx) {
 
-    time_t temp = time(NULL); 
+    time_t temp = time(NULL);
     struct tm *tick_time = localtime(&temp);
 
     int minArmStart = (center.x - 20) * (100-s_battery_level) / 100;
@@ -665,10 +166,10 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
         graphics_context_set_stroke_width(ctx, 1);
         graphics_draw_line(ctx, center, rayFrom(minAngle, minArmStart));
         graphics_context_set_stroke_width(ctx, 5);
-        graphics_draw_line(ctx, rayFrom(minAngle, minArmStart), rayFrom(minAngle, minArmEnd));  
+        graphics_draw_line(ctx, rayFrom(minAngle, minArmStart), rayFrom(minAngle, minArmEnd));
     }
 
-    // Draw hour shadow    
+    // Draw hour shadow
     {
         graphics_context_set_stroke_color(ctx, GColorBlack);
         graphics_context_set_stroke_width(ctx, 3);
@@ -677,7 +178,7 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
         graphics_draw_line(ctx, rayFrom(hourAngle, hourArmStart), rayFrom(hourAngle, hourArmEnd));
     }
 
-    // Draw hour hand    
+    // Draw hour hand
     {
         graphics_context_set_stroke_color(ctx, GColorWhite);
         graphics_context_set_stroke_width(ctx, 1);
@@ -692,159 +193,13 @@ static void analog_update_proc(Layer *layer, GContext *ctx) {
 
 }
 
-
-// tick has occurred 
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+// tick has occurred
+ void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Time tick occured.");
     update_time();
-
 }
 
-// appmessage
-static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received message");
-
-
-    Tuple *cfg_analog_tuple = dict_find(iterator, MESSAGE_KEY_CFG_ANALOG);
-    Tuple *cfg_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CFG_CELSIUS);
-    if (cfg_analog_tuple) {
-        settings.Analog = cfg_analog_tuple->value->int32 == 1;
-        settings.Metric = cfg_celsius_tuple->value->int32 == 1;
-        prv_save_settings();
-        send_message();
-    }
-    
-    // space data
-    // Read tuples for data
-    Tuple *sunrise_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNRISE);
-    Tuple *sunset_tuple = dict_find(iterator, MESSAGE_KEY_SPACE_SUNSET);
-
-    if(sunrise_tuple) {
-        APP_LOG(APP_LOG_LEVEL_INFO, "Inbox recieved space data.");
-        s_sunset = sunset_tuple->value->int32;
-        s_sunrise = sunrise_tuple->value->int32;
-        settings.sunrise = s_sunrise;
-        settings.sunset = s_sunset;
-        s_space_ready = true;
-        layer_mark_dirty(s_forecast_layer);
-        prv_save_settings();
-    }
-
-
-    // Weather data
-    static char temperature_buffer[8];
-    static char forecast_high_low_buffer[16];
-
-    // Read tuples for data
-    Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
-    Tuple *forecast_high_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_HIGH);
-    Tuple *forecast_low_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_LOW);
-    Tuple *conditions_tuple = dict_find(iterator, MESSAGE_KEY_CONDITIONS);
-    Tuple *forecast_clouds_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_CLOUDS);
-    Tuple *forecast_precip_type_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_TYPE);
-    Tuple *forecast_precip_intensity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_INTENSITY);
-    Tuple *forecast_temp_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_TEMP);
-    Tuple *forecast_wind_intensity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_WIND_INTENSITY);
-
-    // If all data is available, use it
-    if(temp_tuple) {
-        APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received weather data");
-
-        snprintf(temperature_buffer, sizeof(temperature_buffer), "%d˚", (int)temp_tuple->value->int32); // TODO units
-        snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer), "%d˚/%d˚", (int)forecast_high_tuple->value->int32, (int)forecast_low_tuple->value->int32);
-        snprintf(forecast_clouds_str, sizeof(forecast_clouds_str), "%s", forecast_clouds_tuple->value->cstring);
-        snprintf(forecast_precip_type_str, sizeof(forecast_precip_type_str), "%s", forecast_precip_type_tuple->value->cstring);
-        snprintf(forecast_precip_intensity_str, sizeof(forecast_precip_intensity_str), "%s", forecast_precip_intensity_tuple->value->cstring);
-        snprintf(forecast_temp_str, sizeof(forecast_temp_str), "%s", forecast_temp_tuple->value->cstring);
-        snprintf(forecast_wind_intensity_str, sizeof(forecast_wind_intensity_str), "%s", forecast_wind_intensity_tuple->value->cstring);
-        text_layer_set_text(s_temp_layer, temperature_buffer);
-        text_layer_set_text(s_forecast_high_low_layer, forecast_high_low_buffer);
-
-        
-        char* conditions = conditions_tuple->value->cstring;
-        for (int i = 0; i < 10; i++) {
-            if (strcmp(conditions, condition_icons[i]) == 0) {
-                bitmap_layer_set_bitmap(s_conditions_layer, s_condition_icon_bitmap[i]);
-            }
-        }
-        
-        layer_mark_dirty(text_layer_get_layer(s_temp_layer));
-        layer_mark_dirty(text_layer_get_layer(s_forecast_high_low_layer));
-        layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
-        s_weather_ready = true;
-        layer_mark_dirty(s_forecast_layer);
-
-    }
-    
-}
-
-static char reasonStr[20];
-static void getAppMessageResult(AppMessageResult reason){
-    switch(reason){
-    case APP_MSG_OK:
-    snprintf(reasonStr,20,"%s","APP_MSG_OK");
-    break;
-    case APP_MSG_SEND_TIMEOUT:
-    snprintf(reasonStr,20,"%s","SEND TIMEOUT");
-    break;
-    case APP_MSG_SEND_REJECTED:
-    snprintf(reasonStr,20,"%s","SEND REJECTED");
-    break;
-    case APP_MSG_NOT_CONNECTED:
-    snprintf(reasonStr,20,"%s","NOT CONNECTED");
-    break;
-    case APP_MSG_APP_NOT_RUNNING:
-    snprintf(reasonStr,20,"%s","NOT RUNNING");
-    break;
-    case APP_MSG_INVALID_ARGS:
-    snprintf(reasonStr,20,"%s","INVALID ARGS");
-    break;
-    case APP_MSG_BUSY:
-    snprintf(reasonStr,20,"%s","BUSY");
-    break;
-    case APP_MSG_BUFFER_OVERFLOW:
-    snprintf(reasonStr,20,"%s","BUFFER OVERFLOW");
-    break;
-    case APP_MSG_ALREADY_RELEASED:
-    snprintf(reasonStr,20,"%s","ALRDY RELEASED");
-    break;
-    case APP_MSG_CALLBACK_ALREADY_REGISTERED:
-    snprintf(reasonStr,20,"%s","CLB ALR REG");
-    break;
-    case APP_MSG_CALLBACK_NOT_REGISTERED:
-    snprintf(reasonStr,20,"%s","CLB NOT REG");
-    break;
-    case APP_MSG_OUT_OF_MEMORY:
-    snprintf(reasonStr,20,"%s","OUT OF MEM");
-    break;   
-    case APP_MSG_CLOSED:
-        snprintf(reasonStr,20,"%s","MSG CLOSED");
-        break;  
-    case APP_MSG_INTERNAL_ERROR:
-        snprintf(reasonStr,20,"%s","INTERNAL ERR");
-        break;  
-    case APP_MSG_INVALID_STATE:
-        snprintf(reasonStr,20,"%s","INVALID STATE");
-        break;  
-    }
-
-}
-
-
-static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-    getAppMessageResult(reason);
-    APP_LOG(APP_LOG_LEVEL_ERROR, reasonStr);
-}
-
-static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-}
-
-static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
-}
-
-static void main_window_load(Window *window) {
+ void main_window_load(Window *window) {
 
     Layer* window_layer = window_get_root_layer(window);
     GRect window_bounds = layer_get_unobstructed_bounds(window_layer);
@@ -858,8 +213,8 @@ static void main_window_load(Window *window) {
         GRect timeRect = GRect(0, h/2-30, w, 50);
         GRect stepRect = GRect(20, h-38, w - 40, 20);
         GRect analogRect = GRect(0, 0, w, h);
-    
-        GRect conditionRect = GRect(18,18, 26,26);    
+
+        GRect conditionRect = GRect(18,18, 26,26);
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(23, h-38, 40, 20);
     #else
@@ -869,8 +224,8 @@ static void main_window_load(Window *window) {
         GRect stepRect = GRect(w/2, h-55, 40, 20);
         int targetAnalogWidth = w - 18;
         GRect analogRect = GRect(w/2-targetAnalogWidth/2, h/2-targetAnalogWidth/2, targetAnalogWidth, targetAnalogWidth);
-    
-        GRect conditionRect = GRect(48, 28, 26,26);    
+
+        GRect conditionRect = GRect(48, 28, 26,26);
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(45, h-55, 40, 20);
 
@@ -884,14 +239,14 @@ static void main_window_load(Window *window) {
         dateRect = DATE_LAYER_DIGITAL;
         dateAlign = DATE_ALIGN_DIGITAL;
     }
-    
+
     s_time_font = fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS);
     s_date_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
     s_steps_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
-    
+
     // Analog hands layer
     s_analog_layer = layer_create(analogRect);
-    calculate_perimiter(s_analog_layer);
+      calculate_perimiter(s_analog_layer);
     layer_set_update_proc(s_analog_layer, analog_update_proc);
 
 
@@ -918,7 +273,7 @@ static void main_window_load(Window *window) {
     bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
     bitmap_layer_set_background_color(s_bt_icon_layer, GColorBlack);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bt_icon_layer));
-    
+
      // Weather forecast layer
     s_forecast_layer = layer_create(window_bounds);
     layer_set_update_proc(s_forecast_layer, forecast_update_proc);
@@ -938,7 +293,7 @@ static void main_window_load(Window *window) {
     text_layer_set_font(s_temp_layer, s_date_font);
     text_layer_set_text_alignment(s_temp_layer, GTextAlignmentRight);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_temp_layer));
-    
+
     //forecast high/low text layer
     s_forecast_high_low_layer = text_layer_create(forecastHighLowRect);
     text_layer_set_background_color(s_forecast_high_low_layer, GColorClear);
@@ -991,13 +346,13 @@ static void main_window_load(Window *window) {
     if (settings.Analog) layer_add_child(window_get_root_layer(window), s_analog_layer);
 
     // Initialize the display
-    update_time();
+    update_time_no_update_weather();
     battery_callback(battery_state_service_peek());
     bluetooth_callback(connection_service_peek_pebble_app_connection());
 
 }
 
-static void main_window_unload(Window *window) {
+ void main_window_unload(Window *window) {
 
     gbitmap_destroy(s_bt_icon_bitmap);
     bitmap_layer_destroy(s_bt_icon_layer);
@@ -1008,12 +363,12 @@ static void main_window_unload(Window *window) {
     text_layer_destroy(s_temp_layer);
     text_layer_destroy(s_forecast_high_low_layer);
     text_layer_destroy(s_battery_text_layer);
-    
+
     layer_destroy(s_analog_layer);
     layer_destroy(s_forecast_layer);
 }
 
-static void init() {
+ void init() {
     prv_load_settings();
 
     s_space_ready = true;
@@ -1034,7 +389,7 @@ static void init() {
     battery_state_service_subscribe(battery_callback);
 
     #if defined(PBL_HEALTH)
-    // Attempt to subscribe 
+    // Attempt to subscribe
     if(!health_service_events_subscribe(health_handler, NULL)) {
         APP_LOG(APP_LOG_LEVEL_ERROR, "Health not available!");
     }
@@ -1058,7 +413,7 @@ static void init() {
 
 }
 
-static void deinit() {
+ void deinit() {
     window_destroy(s_main_window);
 }
 

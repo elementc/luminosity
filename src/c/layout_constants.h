@@ -1,5 +1,5 @@
 #include <pebble.h>
-
+#pragma once
 #define WIDTH_24H_LINES 1
 #define WIDTH_24H_LINES_CURRENT 3
 #define TRI_W 8
