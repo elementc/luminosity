@@ -1,7 +1,5 @@
 #include "src/c/luminosity.h"
 
-
-
 // Triggered when bluetooth connects/disconnects
  void bluetooth_callback(bool connected) {
     // Show icon if disconnected

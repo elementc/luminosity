@@ -33,7 +33,8 @@
             "WIND_BEARING",
             "WIND_SPEED",
             "FORECAST_WIND_HIGH",
-            "FORECAST_WIND_LOW"
+            "FORECAST_WIND_LOW",
+            "CFG_INVERT_COLORS"
         ],
         "projectType": "native",
         "resources": {

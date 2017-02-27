@@ -12,13 +12,19 @@ module.exports = [
         "items": [
             {
                 "type": "heading",
-                "defaultValue": "Time"
+                "defaultValue": "Display"
             },
             {
                 "type": "toggle",
                 "messageKey": "CFG_ANALOG",
                 "defaultValue": false,
                 "label": "Analog Face"
+            },
+            {
+                "type": "toggle",
+                "messageKey": "CFG_INVERT_COLORS",
+                "defaultValue": false,
+                "label": "Use lighter color palatte"
             }
         ]
     },
