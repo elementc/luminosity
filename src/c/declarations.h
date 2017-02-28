@@ -6,6 +6,7 @@ typedef struct ClaySettings {
     bool Analog;
     bool Metric;
     bool Knots;
+    bool Invert_Colors;
     int sunrise;
     int sunset;
 } ClaySettings;
@@ -35,6 +36,7 @@ extern  int temperature, tempHigh, tempLow, windSpeed, windSpeedHigh, windSpeedL
 extern  bool s_weather_ready;
 extern  Layer *s_forecast_layer;
 extern  BitmapLayer *s_conditions_layer;
+extern  EffectLayer *s_conditions_layer_inverter;
 extern  bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
@@ -50,6 +52,7 @@ extern  char steps_str[12];
 /* Bluetooth */
 extern  BitmapLayer *s_bt_icon_layer;
 extern  GBitmap *s_bt_icon_bitmap;
+extern  EffectLayer *s_bt_icon_layer_inverter;
 
 /* Space */
 extern  int s_sunset, s_sunrise;

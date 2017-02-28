@@ -81,12 +81,31 @@
     int topcount = bounds.size.w / step;
     int sidecount = bounds.size.h / step;
 
-  //  APP_LOG(APP_LOG_LEVEL_DEBUG, "Perimiter: %d, step: %d, topcount: %d, sidecount: %d", perimiter, step, topcount, sidecount);
-
     int halftop = topcount / 2;
 
     upperright = halftop;
     lowerright = halftop + sidecount;
     lowerleft = halftop + sidecount + topcount;
     upperleft = halftop + sidecount + topcount + sidecount;
+}
+
+//set colors to layers and mark all dirty
+void apply_colors_to_layers() {
+  window_set_background_color(s_main_window, COLOR_WINDOW);
+  text_layer_set_text_color(s_temp_layer, COLOR_TEMP);
+  text_layer_set_text_color(s_forecast_high_low_layer, COLOR_TEMP);
+  text_layer_set_text_color(s_time_layer, COLOR_TIME);
+  text_layer_set_text_color(s_date_layer, COLOR_DATE);
+  text_layer_set_text_color(s_battery_text_layer, COLOR_STEPS);
+  text_layer_set_text_color(s_steps_layer, COLOR_STEPS);
+  layer_mark_dirty(window_get_root_layer(s_main_window));
+  layer_mark_dirty(text_layer_get_layer(s_temp_layer));
+  layer_mark_dirty(bitmap_layer_get_layer(s_bt_icon_layer));
+  layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
+
+  effect_layer_remove_effect(s_conditions_layer_inverter);
+  if (settings.Invert_Colors && s_weather_ready){
+    effect_layer_add_effect(s_conditions_layer_inverter, effect_invert_bw_only, NULL);
+  }
+
 }

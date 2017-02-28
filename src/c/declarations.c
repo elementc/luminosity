@@ -25,6 +25,7 @@
  bool s_weather_ready;
  Layer *s_forecast_layer;
  BitmapLayer *s_conditions_layer;
+ EffectLayer *s_conditions_layer_inverter;
  bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
@@ -39,6 +40,7 @@
 
 /* Bluetooth */
  BitmapLayer *s_bt_icon_layer;
+ EffectLayer *s_bt_icon_layer_inverter;
  GBitmap *s_bt_icon_bitmap;
 
 /* Space */

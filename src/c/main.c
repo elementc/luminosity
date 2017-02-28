@@ -8,6 +8,13 @@
     if(!connected) {
         vibes_double_pulse();
     }
+
+    if (!connected){
+      effect_layer_remove_effect(s_bt_icon_layer_inverter);
+      if (settings.Invert_Colors){
+        effect_layer_add_effect(s_bt_icon_layer_inverter, effect_invert_bw_only, NULL);
+      }
+    }
 }
 
 // Triggered when the battery has changed level
@@ -134,11 +141,11 @@
             GPoint pt1 = rayFrom(DEG_TO_TRIGANGLE(i * 30), center.x - 25);
             GPoint pt2 = rayFrom(DEG_TO_TRIGANGLE(i * 30), center.x - 22);
             bool big = i%3==0;
-
-            graphics_context_set_stroke_color(ctx, GColorBlack);
+            //todo replace colors with palatte
+            graphics_context_set_stroke_color(ctx, COLOR_WINDOW);
             graphics_context_set_stroke_width(ctx, 2);
             graphics_draw_line(ctx, pt1, pt2);
-            graphics_context_set_stroke_color(ctx, big?GColorWhite:GColorLightGray);
+            graphics_context_set_stroke_color(ctx, big?COLOR_TIME:COLOR_DAY_CLOUDY);
             graphics_context_set_stroke_width(ctx, 1);
             graphics_draw_line(ctx, pt1, pt2);
         }
@@ -146,12 +153,12 @@
     #endif
 
     // Draw hub shadow
-    graphics_context_set_fill_color(ctx, GColorBlack);
+    graphics_context_set_fill_color(ctx, COLOR_WINDOW);
     graphics_fill_circle(ctx, center, 3);
 
     // Draw minute shadow
     {
-        graphics_context_set_stroke_color(ctx, GColorBlack);
+        graphics_context_set_stroke_color(ctx, COLOR_TIME);
         graphics_context_set_stroke_width(ctx, 3);
         graphics_draw_line(ctx, center, rayFrom(minAngle, minArmStart));
         graphics_context_set_stroke_width(ctx, 7);
@@ -160,7 +167,7 @@
 
     // Draw minute hand
     {
-        graphics_context_set_stroke_color(ctx, GColorWhite);
+        graphics_context_set_stroke_color(ctx, COLOR_TIME);
         graphics_context_set_stroke_width(ctx, 1);
         graphics_draw_line(ctx, center, rayFrom(minAngle, minArmStart));
         graphics_context_set_stroke_width(ctx, 5);
@@ -169,7 +176,7 @@
 
     // Draw hour shadow
     {
-        graphics_context_set_stroke_color(ctx, GColorBlack);
+        graphics_context_set_stroke_color(ctx, COLOR_WINDOW);
         graphics_context_set_stroke_width(ctx, 3);
         graphics_draw_line(ctx, center, rayFrom(hourAngle, hourArmStart));
         graphics_context_set_stroke_width(ctx, 9);
@@ -178,7 +185,7 @@
 
     // Draw hour hand
     {
-        graphics_context_set_stroke_color(ctx, GColorWhite);
+        graphics_context_set_stroke_color(ctx, COLOR_TIME);
         graphics_context_set_stroke_width(ctx, 1);
         graphics_draw_line(ctx, center, rayFrom(hourAngle, hourArmStart));
         graphics_context_set_stroke_width(ctx, 7);
@@ -186,7 +193,7 @@
     }
 
     // Draw hub
-    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_context_set_fill_color(ctx, COLOR_TIME);
     graphics_fill_circle(ctx, center, 2);
 
 }
@@ -205,6 +212,7 @@
     int w = window_bounds.size.w;
     int h = window_bounds.size.h;
 
+    //todo: clean up using layout_constants.h
     #ifdef PBL_RECT
         GRect tempRect = GRect(w - 50 - 18, 15, 50, 20);
         GRect forecastHighLowRect = GRect(w - 83, 32, 65, 33);
@@ -228,6 +236,7 @@
         GRect batteryRect = GRect(45, h-55, 40, 20);
 
     #endif
+
     GRect dateRect;
     GTextAlignment dateAlign;
     if (settings.Analog) {
@@ -263,14 +272,20 @@
     s_conditions_layer = bitmap_layer_create(conditionRect);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_conditions_layer));
 
+    s_conditions_layer_inverter = effect_layer_create(conditionRect);
+    layer_add_child(window_get_root_layer(window), effect_layer_get_layer(s_conditions_layer_inverter));
+
     // Create the Bluetooth icon GBitmap
     s_bt_icon_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_ICON);
 
     // Create the BitmapLayer to display the GBitmap
     s_bt_icon_layer = bitmap_layer_create(btRect);
+    bitmap_layer_set_background_color(s_bt_icon_layer, COLOR_CLEAR);
     bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
-    bitmap_layer_set_background_color(s_bt_icon_layer, GColorBlack);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_bt_icon_layer));
+
+    s_bt_icon_layer_inverter = effect_layer_create(btRect);
+    layer_add_child(window_get_root_layer(window), effect_layer_get_layer(s_bt_icon_layer_inverter));
 
      // Weather forecast layer
     s_forecast_layer = layer_create(window_bounds);
@@ -285,8 +300,7 @@
 
     // Temperature layer
     s_temp_layer = text_layer_create(tempRect);
-    text_layer_set_background_color(s_temp_layer, GColorClear);
-    text_layer_set_text_color(s_temp_layer, COLOR_TEMP);
+    text_layer_set_background_color(s_temp_layer, COLOR_CLEAR);
     text_layer_set_text(s_temp_layer, "");
     text_layer_set_font(s_temp_layer, s_date_font);
     text_layer_set_text_alignment(s_temp_layer, GTextAlignmentRight);
@@ -294,8 +308,7 @@
 
     //forecast high/low text layer
     s_forecast_high_low_layer = text_layer_create(forecastHighLowRect);
-    text_layer_set_background_color(s_forecast_high_low_layer, GColorClear);
-    text_layer_set_text_color(s_forecast_high_low_layer, COLOR_TEMP);
+    text_layer_set_background_color(s_forecast_high_low_layer, COLOR_CLEAR);
     text_layer_set_text(s_forecast_high_low_layer, "");
     text_layer_set_font(s_forecast_high_low_layer, s_date_font);
     text_layer_set_text_alignment(s_forecast_high_low_layer, GTextAlignmentRight);
@@ -303,8 +316,7 @@
 
     // Create time TextLayer
     s_time_layer = text_layer_create(timeRect);
-    text_layer_set_background_color(s_time_layer, GColorClear);
-    text_layer_set_text_color(s_time_layer, COLOR_TIME);
+    text_layer_set_background_color(s_time_layer, COLOR_CLEAR);
     text_layer_set_text(s_time_layer, "--:--");
     text_layer_set_font(s_time_layer, s_time_font);
     text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
@@ -312,8 +324,7 @@
 
     // Create date TextLayer
     s_date_layer = text_layer_create(dateRect);
-    text_layer_set_text_color(s_date_layer, COLOR_DATE);
-    text_layer_set_background_color(s_date_layer, GColorClear);
+    text_layer_set_background_color(s_date_layer, COLOR_CLEAR);
     text_layer_set_text_alignment(s_date_layer, dateAlign);
     text_layer_set_text(s_date_layer, "");
     text_layer_set_font(s_date_layer, s_date_font);
@@ -321,16 +332,14 @@
 
     // Create battery meter Layer
     s_battery_text_layer = text_layer_create(batteryRect);
-    text_layer_set_background_color(s_battery_text_layer, GColorClear);
-    text_layer_set_text_color(s_battery_text_layer, COLOR_STEPS);
+    text_layer_set_background_color(s_battery_text_layer, COLOR_CLEAR);
     text_layer_set_text(s_battery_text_layer, "");
     text_layer_set_font(s_battery_text_layer, s_steps_font);
     text_layer_set_text_alignment(s_battery_text_layer, GTextAlignmentLeft);
 
     // Steps layer
     s_steps_layer = text_layer_create(stepRect);
-    text_layer_set_background_color(s_steps_layer, GColorClear);
-    text_layer_set_text_color(s_steps_layer, COLOR_STEPS);
+    text_layer_set_background_color(s_steps_layer, COLOR_CLEAR);
     text_layer_set_text(s_steps_layer, "");
     text_layer_set_font(s_steps_layer, s_steps_font);
     text_layer_set_text_alignment(s_steps_layer, GTextAlignmentRight);
@@ -344,9 +353,11 @@
     if (settings.Analog) layer_add_child(window_get_root_layer(window), s_analog_layer);
 
     // Initialize the display
+    apply_colors_to_layers();
     update_time_no_update_weather();
     battery_callback(battery_state_service_peek());
     bluetooth_callback(connection_service_peek_pebble_app_connection());
+
 
 }
 
@@ -361,9 +372,10 @@
     text_layer_destroy(s_temp_layer);
     text_layer_destroy(s_forecast_high_low_layer);
     text_layer_destroy(s_battery_text_layer);
-
     layer_destroy(s_analog_layer);
     layer_destroy(s_forecast_layer);
+    effect_layer_destroy(s_bt_icon_layer_inverter);
+    effect_layer_destroy(s_conditions_layer_inverter);
 }
 
  void init() {
@@ -379,8 +391,6 @@
         .unload = main_window_unload
     });
     window_stack_push(s_main_window, true);
-
-    window_set_background_color(s_main_window, COLOR_WINDOW);
 
     // Register with Event Services
     tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
@@ -408,6 +418,7 @@
     connection_service_subscribe((ConnectionHandlers) {
         .pebble_app_connection_handler = bluetooth_callback
     });
+
 
 }
 

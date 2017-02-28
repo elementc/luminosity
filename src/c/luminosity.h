@@ -1,5 +1,6 @@
 #pragma once
 #include <pebble.h>
+#include <pebble-effect-layer/pebble-effect-layer.h>
 #include "src/c/declarations.h"
 #include "src/c/color_palette.h"
 #include "src/c/settings.h"

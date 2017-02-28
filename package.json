@@ -1,7 +1,8 @@
 {
     "author": "Casey Doran",
     "dependencies": {
-        "pebble-clay": "^1.0.3"
+        "pebble-clay": "^1.0.3",
+        "pebble-effect-layer": "^1.1.0"
     },
     "keywords": [],
     "name": "luminosity",

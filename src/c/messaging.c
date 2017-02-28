@@ -20,10 +20,12 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
     Tuple *cfg_analog_tuple = dict_find(iterator, MESSAGE_KEY_CFG_ANALOG);
     Tuple *cfg_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CFG_CELSIUS);
+    Tuple *cfg_invert_colors_tuple = dict_find(iterator, MESSAGE_KEY_CFG_INVERT_COLORS);
     if (cfg_analog_tuple) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received settings.");
         settings.Analog = cfg_analog_tuple->value->int32 == 1;
         settings.Metric = cfg_celsius_tuple->value->int32 == 1;
+        settings.Invert_Colors = cfg_invert_colors_tuple->value->int32 == 1;
         prv_save_settings();
     }
 
@@ -72,6 +74,12 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
         for (int i = 0; i < 10; i++) {
             if (strcmp(conditions, condition_icons[i]) == 0) {
                 bitmap_layer_set_bitmap(s_conditions_layer, s_condition_icon_bitmap[i]);
+                effect_layer_remove_effect(s_conditions_layer_inverter);
+                if (settings.Invert_Colors){
+                  effect_layer_add_effect(s_conditions_layer_inverter, effect_invert_bw_only, NULL);
+                } else{
+                  effect_layer_remove_effect(s_conditions_layer_inverter);
+                }
             }
         }
 
