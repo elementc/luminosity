@@ -9,3 +9,4 @@
 #include "src/c/update.h"
 #include "src/c/forecast.h"
 #include "src/c/drawing.h"
+#include "src/c/weather.h"

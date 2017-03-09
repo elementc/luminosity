@@ -93,7 +93,9 @@
 void apply_colors_to_layers() {
   window_set_background_color(s_main_window, COLOR_WINDOW);
   text_layer_set_text_color(s_temp_layer, COLOR_TEMP);
+  text_layer_set_text_color(s_wind_speed_layer, COLOR_TEMP);
   text_layer_set_text_color(s_forecast_high_low_layer, COLOR_TEMP);
+  text_layer_set_text_color(s_wind_bearing_layer, COLOR_TEMP);
   text_layer_set_text_color(s_time_layer, COLOR_TIME);
   text_layer_set_text_color(s_date_layer, COLOR_DATE);
   text_layer_set_text_color(s_battery_text_layer, COLOR_STEPS);

@@ -16,16 +16,24 @@ void send_message() {
 // appmessage
 void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received message");
+    bool need_weather_update = false;
 
 
     Tuple *cfg_analog_tuple = dict_find(iterator, MESSAGE_KEY_CFG_ANALOG);
     Tuple *cfg_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CFG_CELSIUS);
     Tuple *cfg_invert_colors_tuple = dict_find(iterator, MESSAGE_KEY_CFG_INVERT_COLORS);
+    Tuple *cfg_knots_tuple = dict_find(iterator, MESSAGE_KEY_CFG_KNOTS);
     if (cfg_analog_tuple) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received settings.");
-        settings.Analog = cfg_analog_tuple->value->int32 == 1;
-        settings.Metric = cfg_celsius_tuple->value->int32 == 1;
+        bool new_Analog = cfg_analog_tuple->value->int32 == 1;
+        bool new_Metric = cfg_celsius_tuple->value->int32 == 1;
+        bool new_Knots = cfg_knots_tuple->value->int32 == 1;
+        if (settings.Analog != new_Analog || settings.Metric != new_Metric || settings.Knots != new_Knots)
+          need_weather_update = true;
+        settings.Analog = new_Analog;
+        settings.Metric = new_Metric;
         settings.Invert_Colors = cfg_invert_colors_tuple->value->int32 == 1;
+        settings.Knots = new_Knots;
         prv_save_settings();
     }
 
@@ -55,12 +63,18 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     Tuple *forecast_precip_intensity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_PRECIP_INTENSITY);
     Tuple *forecast_temp_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_TEMP);
     Tuple *forecast_wind_intensity_tuple = dict_find(iterator, MESSAGE_KEY_FORECAST_WIND_INTENSITY);
+    Tuple *wind_speed_tuple = dict_find(iterator, MESSAGE_KEY_WIND_SPEED);
+    Tuple *wind_bearing_tuple = dict_find(iterator, MESSAGE_KEY_WIND_BEARING);
 
     // If all data is available, use it
     if(temp_tuple) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received weather data");
-
+        int reported_wind_speed = wind_speed_tuple->value->int32;
+        windSpeed = (int) settings.Knots? (settings.Metric? 1.94384f * (double) reported_wind_speed : 0.868976f * (double) reported_wind_speed ) : reported_wind_speed;
+        windBearing = (int) wind_bearing_tuple->value->int32;
         snprintf(temperature_buffer, sizeof(temperature_buffer), "%d˚", (int)temp_tuple->value->int32); // TODO units
+        snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s", windSpeed, (settings.Knots? "kts": (settings.Metric? "m/s" : "mph")));
+        snprintf(wind_bearing_buffer, sizeof(wind_bearing_buffer), "%d˚ %s",windBearing, bearing_to_cardinal(windBearing));
         snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer), "%d˚/%d˚", (int)forecast_high_tuple->value->int32, (int)forecast_low_tuple->value->int32);
         snprintf(forecast_clouds_str, sizeof(forecast_clouds_str), "%s", forecast_clouds_tuple->value->cstring);
         snprintf(forecast_precip_type_str, sizeof(forecast_precip_type_str), "%s", forecast_precip_type_tuple->value->cstring);
@@ -69,6 +83,8 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
         snprintf(forecast_wind_intensity_str, sizeof(forecast_wind_intensity_str), "%s", forecast_wind_intensity_tuple->value->cstring);
         text_layer_set_text(s_temp_layer, temperature_buffer);
         text_layer_set_text(s_forecast_high_low_layer, forecast_high_low_buffer);
+        text_layer_set_text(s_wind_speed_layer, wind_speed_buffer);
+        text_layer_set_text(s_wind_bearing_layer, wind_bearing_buffer);
 
         char* conditions = conditions_tuple->value->cstring;
         for (int i = 0; i < 10; i++) {
@@ -84,14 +100,17 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
         }
 
         layer_mark_dirty(text_layer_get_layer(s_temp_layer));
+        layer_mark_dirty(text_layer_get_layer(s_wind_speed_layer));
         layer_mark_dirty(text_layer_get_layer(s_forecast_high_low_layer));
+        layer_mark_dirty(text_layer_get_layer(s_wind_bearing_layer));
         layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
         s_weather_ready = true;
         layer_mark_dirty(s_forecast_layer);
+        layer_mark_dirty(s_wind_bearing_icon);
     }
 
-    if (cfg_analog_tuple && !temp_tuple){
-        APP_LOG(APP_LOG_LEVEL_WARNING, "Updated settings.");
+    if ((cfg_analog_tuple && !temp_tuple) || need_weather_update){
+        APP_LOG(APP_LOG_LEVEL_WARNING, "Updated settings. Need new weather.");
         send_message();
     }
 

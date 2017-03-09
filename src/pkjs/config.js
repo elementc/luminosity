@@ -42,11 +42,17 @@ module.exports = [
                 "label": "Use metric units (temp in celsius, wind in m/s instead of temp in farenheit, wind in mph)"
             },
             {
+              "type": "toggle",
+              "messageKey": "CFG_KNOTS",
+              "defaultValue": false,
+              "label": "Use knots instead of the units dictated by your above units settings for wind speed."
+            },
+            {
                 "type": "text",
                 "defaultValue": "Weather data is <a href='https://darksky.net/poweredby/'>Powered by Dark Sky.</a> It costs the developer about a dollar per day to access this weather data. Please consider <a href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AU8HEZGRU3P2L'>donating a dollar or two</a> if you like this face."
             }
         ]
-    }, 
+    },
     {
         "type":"section",
         "items": [

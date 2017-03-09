@@ -204,6 +204,13 @@
     update_time();
 }
 
+void accel_tap_handler(AccelAxisType axis, int32_t direction) {
+  // A tap event occured
+  s_forecast_layer_displaying_wind = !s_forecast_layer_displaying_wind;
+  prv_update_display();
+
+}
+
  void main_window_load(Window *window) {
 
     Layer* window_layer = window_get_root_layer(window);
@@ -214,8 +221,8 @@
 
     //todo: clean up using layout_constants.h
     #ifdef PBL_RECT
-        GRect tempRect = GRect(w - 50 - 18, 15, 50, 20);
-        GRect forecastHighLowRect = GRect(w - 83, 32, 65, 33);
+        GRect tempRect = GRect(w - 50 - 23, 15, 50, 20);
+        GRect forecastHighLowRect = GRect(w - 88, 32, 65, 33);
         GRect timeRect = GRect(0, h/2-30, w, 50);
         GRect stepRect = GRect(20, h-38, w - 40, 20);
         GRect analogRect = GRect(0, 0, w, h);
@@ -224,14 +231,14 @@
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(23, h-38, 40, 20);
     #else
-        GRect tempRect = GRect(w - 100, 25, 50, 20);
+        GRect tempRect = GRect(w - 95, 25, 50, 20);
         GRect forecastHighLowRect = GRect(w - 108, 39, 65, 33);
         GRect timeRect = GRect(0, h/2-30, w, 50);
         GRect stepRect = GRect(w/2, h-55, 40, 20);
         int targetAnalogWidth = w - 18;
         GRect analogRect = GRect(w/2-targetAnalogWidth/2, h/2-targetAnalogWidth/2, targetAnalogWidth, targetAnalogWidth);
 
-        GRect conditionRect = GRect(48, 28, 26,26);
+        GRect conditionRect = GRect(48, 28, 35, 35);
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(45, h-55, 40, 20);
 
@@ -253,7 +260,7 @@
 
     // Analog hands layer
     s_analog_layer = layer_create(analogRect);
-      calculate_perimiter(s_analog_layer);
+    calculate_perimiter(s_analog_layer);
     layer_set_update_proc(s_analog_layer, analog_update_proc);
 
 
@@ -271,6 +278,10 @@
 
     s_conditions_layer = bitmap_layer_create(conditionRect);
     layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_conditions_layer));
+
+    s_wind_bearing_icon = layer_create(conditionRect);
+    layer_set_update_proc(s_wind_bearing_icon, bearing_icon_update_proc);
+    layer_add_child(window_get_root_layer(window), s_wind_bearing_icon);
 
     s_conditions_layer_inverter = effect_layer_create(conditionRect);
     layer_add_child(window_get_root_layer(window), effect_layer_get_layer(s_conditions_layer_inverter));
@@ -306,6 +317,13 @@
     text_layer_set_text_alignment(s_temp_layer, GTextAlignmentRight);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_temp_layer));
 
+    s_wind_speed_layer = text_layer_create(tempRect);
+    text_layer_set_background_color(s_wind_speed_layer, COLOR_CLEAR);
+    text_layer_set_text(s_wind_speed_layer, "");
+    text_layer_set_font(s_wind_speed_layer, s_date_font);
+    text_layer_set_text_alignment(s_wind_speed_layer, GTextAlignmentRight);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_wind_speed_layer));
+
     //forecast high/low text layer
     s_forecast_high_low_layer = text_layer_create(forecastHighLowRect);
     text_layer_set_background_color(s_forecast_high_low_layer, COLOR_CLEAR);
@@ -313,6 +331,14 @@
     text_layer_set_font(s_forecast_high_low_layer, s_date_font);
     text_layer_set_text_alignment(s_forecast_high_low_layer, GTextAlignmentRight);
     layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_forecast_high_low_layer));
+
+    //forecast high/low text layer
+    s_wind_bearing_layer = text_layer_create(forecastHighLowRect);
+    text_layer_set_background_color(s_wind_bearing_layer, COLOR_CLEAR);
+    text_layer_set_text(s_wind_bearing_layer, "");
+    text_layer_set_font(s_wind_bearing_layer, s_date_font);
+    text_layer_set_text_alignment(s_wind_bearing_layer, GTextAlignmentRight);
+    layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_wind_bearing_layer));
 
     // Create time TextLayer
     s_time_layer = text_layer_create(timeRect);
@@ -370,7 +396,9 @@
     text_layer_destroy(s_date_layer);
     text_layer_destroy(s_steps_layer);
     text_layer_destroy(s_temp_layer);
+    text_layer_destroy(s_wind_speed_layer);
     text_layer_destroy(s_forecast_high_low_layer);
+    text_layer_destroy(s_wind_bearing_layer);
     text_layer_destroy(s_battery_text_layer);
     layer_destroy(s_analog_layer);
     layer_destroy(s_forecast_layer);
@@ -383,7 +411,7 @@
 
     s_space_ready = true;
     s_weather_ready = false;
-   // s_forecast_layer_displaying_wind = true;
+    s_forecast_layer_displaying_wind = false;
 
     s_main_window = window_create();
     window_set_window_handlers(s_main_window, (WindowHandlers) {
@@ -411,19 +439,22 @@
     app_message_register_outbox_failed(outbox_failed_callback);
     app_message_register_outbox_sent(outbox_sent_callback);
 
-    const int inbox_size = 250;
-    const int outbox_size = 5;
+    const int inbox_size = 350;
+    const int outbox_size = 10;
     app_message_open(inbox_size, outbox_size);
 
     connection_service_subscribe((ConnectionHandlers) {
         .pebble_app_connection_handler = bluetooth_callback
     });
+    // Subscribe to tap events
+    accel_tap_service_subscribe(accel_tap_handler);
 
 
 }
 
  void deinit() {
     window_destroy(s_main_window);
+    accel_tap_service_unsubscribe();
 }
 
 int main(void) {

@@ -21,6 +21,7 @@
             "SPACE_SUNSET",
             "FORECAST_CLOUDS",
             "CFG_CELSIUS",
+            "CFG_KNOTS",
             "CFG_ANALOG",
             "FORECAST_PRECIP_TYPE",
             "FORECAST_PRECIP_INTENSITY",
@@ -128,5 +129,5 @@
             "watchface": true
         }
     },
-    "version": "2.5.0"
+    "version": "3.0.0"
 }

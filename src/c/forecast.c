@@ -81,6 +81,25 @@
             // inner (precip) ring
             if (s_forecast_layer_displaying_wind){
                 // write method for displaying wind data
+                if (i >= s_sunset || i < s_sunrise){
+                  graphics_context_set_fill_color(ctx, COLOR_WIND_NIGHT);
+                }
+                else {
+                  graphics_context_set_fill_color(ctx, COLOR_WIND_DAY);
+                }
+                int width = (forecast_wind_intensity_str[((24-hour) + i) % 24] - '0')+2;
+                p1 = hours(i, w, h, temp);
+                p2 = hours(i+1, w, h, temp);
+                if (i < 3 || i >= 21) //bottom
+                    r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
+                else if (i >=3 && i < 9) //left side
+                    r1 = GRect(p1.x , p1.y, width, p2.y - p1.y);
+                else if (i >= 9 && i < 15) //top
+                    r1 = GRect(p1.x, p1.y , p2.x-p1.x, width);
+                else //right side
+                    r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
+
+                graphics_fill_rect(ctx, r1, 0, GCornerNone);
             }
             else {
                 //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown

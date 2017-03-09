@@ -14,6 +14,8 @@
 /* Weather */
  TextLayer *s_temp_layer;
  TextLayer *s_forecast_high_low_layer;
+ TextLayer *s_wind_speed_layer;
+ TextLayer *s_wind_bearing_layer;
  char forecast_clouds_str[25];
  char forecast_precip_type_str[25];
  char forecast_precip_intensity_str[25];
@@ -21,9 +23,10 @@
  char forecast_wind_intensity_str[25];
  char wind_direction[6];
  char conditons_string[35];
- int temperature, tempHigh, tempLow, windSpeed, windSpeedHigh, windSpeedLow, windBearing;
+ int temperature, tempHigh, tempLow, windSpeed, windBearing;
  bool s_weather_ready;
  Layer *s_forecast_layer;
+ Layer *s_wind_bearing_icon;
  BitmapLayer *s_conditions_layer;
  EffectLayer *s_conditions_layer_inverter;
  bool s_forecast_layer_displaying_wind;
@@ -61,3 +64,5 @@
  char time_buffer[] = "00:00";
  char temperature_buffer[8];
  char forecast_high_low_buffer[16];
+ char wind_speed_buffer[16];
+ char wind_bearing_buffer[16];
