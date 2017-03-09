@@ -9,7 +9,7 @@
     int hour = tick_time->tm_hour;
 
     #ifdef PBL_RECT
-    
+
     int w = fcst_bounds.size.w;
     int h = fcst_bounds.size.h;
     if (!s_space_ready) //if we have no space, we can do neither
@@ -17,7 +17,7 @@
     else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
         for (int i = 0; i< 24; i++){
             int width = NO_WEATHER_SKY_LINE_WIDTH;
-            if (i > s_sunset || i <= s_sunrise){
+            if (i >= s_sunset || i < s_sunrise){
                 //night color pick
                 graphics_context_set_fill_color(ctx, COLOR_NIGHT);
             }else{
@@ -46,7 +46,7 @@
             //outer (light + temp + clouds) ring
             int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 2;
             graphics_context_set_stroke_width(ctx, temp);
-            if (i > s_sunset || i <= s_sunrise){
+            if (i >= s_sunset || i < s_sunrise){
                 //night color pick
                 if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
                     graphics_context_set_fill_color(ctx, COLOR_NIGHT);
@@ -84,7 +84,7 @@
             }
             else {
                 //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-                if (i > s_sunset || i <= s_sunrise){
+                if (i >= s_sunset || i < s_sunrise){
                     switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
                         case 'r':
                             graphics_context_set_fill_color(ctx, COLOR_RAINY_NIGHT);
@@ -143,7 +143,7 @@
     else if (!s_weather_ready && s_space_ready){ //if we have space only, we can draw just the sunrise/sunset ring
         GRect bounds = grect_crop(fcst_bounds, NO_WEATHER_SKY_LINE_WIDTH / 2);
         for (int i = 0; i < 24; i++){
-             if (i > s_sunset || i <= s_sunrise){
+             if (i >= s_sunset || i < s_sunrise){
                 //night color pick
                 graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
             }
@@ -162,7 +162,7 @@
         //outer (light + temp + clouds) ring
             int temp = (forecast_temp_str[((24-hour) + i) % 24] - '0') + 6;
             graphics_context_set_stroke_width(ctx, temp);
-            if (i > s_sunset || i <= s_sunrise){
+            if (i >= s_sunset || i < s_sunrise){
                 //night color pick
                 if (forecast_clouds_str[((24-hour) + i) % 24] == '0')
                     graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
@@ -188,7 +188,7 @@
             // inner ring
             if (s_forecast_layer_displaying_wind){
                 //write method for displaying wind data
-                if (i > s_sunset || i <= s_sunrise){
+                if (i >= s_sunset || i < s_sunrise){
                     graphics_context_set_stroke_color(ctx, COLOR_WIND_NIGHT);
                 }
                 else {
@@ -202,7 +202,7 @@
             else{
                 //precip data
                 //c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-                if (i > s_sunset || i <= s_sunrise){
+                if (i >= s_sunset || i < s_sunrise){
                     switch (forecast_precip_type_str[((24-hour) + i) % 24]) {
                         case 'r':
                             graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
