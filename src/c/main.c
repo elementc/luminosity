@@ -231,14 +231,14 @@ void accel_tap_handler(AccelAxisType axis, int32_t direction) {
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(23, h-38, 40, 20);
     #else
-        GRect tempRect = GRect(w - 95, 25, 50, 20);
-        GRect forecastHighLowRect = GRect(w - 108, 39, 65, 33);
+        GRect tempRect = GRect(w - 97, 25, 50, 20);
+        GRect forecastHighLowRect = GRect(w - 105, 39, 65, 33);
         GRect timeRect = GRect(0, h/2-30, w, 50);
         GRect stepRect = GRect(w/2, h-55, 40, 20);
         int targetAnalogWidth = w - 18;
         GRect analogRect = GRect(w/2-targetAnalogWidth/2, h/2-targetAnalogWidth/2, targetAnalogWidth, targetAnalogWidth);
 
-        GRect conditionRect = GRect(48, 28, 35, 35);
+        GRect conditionRect = GRect(43, 28, 35, 35);
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(45, h-55, 40, 20);
 

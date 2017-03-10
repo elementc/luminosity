@@ -39,8 +39,8 @@ void update_colors(){
     COLOR_NIGHT  = GColorIndigo;
     COLOR_NIGHT_PARTLY  = GColorLavenderIndigo;
     COLOR_NIGHT_CLOUDY  = GColorDarkGray;
-    COLOR_DAY  = GColorYellow;
-    COLOR_DAY_PARTLY  = GColorPastelYellow;
+    COLOR_DAY  = GColorChromeYellow;
+    COLOR_DAY_PARTLY  = GColorYellow;
     COLOR_DAY_CLOUDY  = GColorLightGray;
     COLOR_RAINY_DAY  = GColorBlue;
     COLOR_SNOWY_DAY  = GColorShockingPink;
