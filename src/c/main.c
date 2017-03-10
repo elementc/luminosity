@@ -8,13 +8,10 @@
     if(!connected) {
         vibes_double_pulse();
     }
-
-    if (!connected){
-      effect_layer_remove_effect(s_bt_icon_layer_inverter);
-      if (settings.Invert_Colors){
+    effect_layer_remove_effect(s_bt_icon_layer_inverter);
+    if (!connected && settings.Invert_Colors){
         effect_layer_add_effect(s_bt_icon_layer_inverter, effect_invert_bw_only, NULL);
-      }
-    }
+    } 
 }
 
 // Triggered when the battery has changed level
