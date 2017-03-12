@@ -98,15 +98,8 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
                 }
             }
         }
-
-        layer_mark_dirty(text_layer_get_layer(s_temp_layer));
-        layer_mark_dirty(text_layer_get_layer(s_wind_speed_layer));
-        layer_mark_dirty(text_layer_get_layer(s_forecast_high_low_layer));
-        layer_mark_dirty(text_layer_get_layer(s_wind_bearing_layer));
-        layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
         s_weather_ready = true;
-        layer_mark_dirty(s_forecast_layer);
-        layer_mark_dirty(s_wind_bearing_icon);
+        prv_update_display();
     }
 
     if ((cfg_analog_tuple && !temp_tuple) || need_weather_update){

@@ -77,11 +77,18 @@ void prv_update_display() {
       layer_remove_from_parent(s_wind_bearing_icon);
     }
 
-    if (settings.Invert_Colors){
+    if (settings.Invert_Colors && s_weather_ready){
       bitmap_layer_set_background_color(s_conditions_layer, COLOR_TIME);
     } else{
       bitmap_layer_set_background_color(s_conditions_layer, COLOR_CLEAR);
     }
+    layer_mark_dirty(s_forecast_layer);
+    layer_mark_dirty(s_wind_bearing_icon);
+    layer_mark_dirty(text_layer_get_layer(s_temp_layer));
+    layer_mark_dirty(text_layer_get_layer(s_wind_speed_layer));
+    layer_mark_dirty(text_layer_get_layer(s_forecast_high_low_layer));
+    layer_mark_dirty(text_layer_get_layer(s_wind_bearing_layer));
+    layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer)); 
     APP_LOG(APP_LOG_LEVEL_INFO, "Updated display.");
     update_time_no_update_weather();
 
