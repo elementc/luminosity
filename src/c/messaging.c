@@ -99,6 +99,7 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
             }
         }
         s_weather_ready = true;
+        need_weather_update = false;
         prv_update_display();
     }
 
