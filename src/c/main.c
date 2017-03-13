@@ -11,7 +11,7 @@
     effect_layer_remove_effect(s_bt_icon_layer_inverter);
     if (!connected && settings.Invert_Colors){
         effect_layer_add_effect(s_bt_icon_layer_inverter, effect_invert_bw_only, NULL);
-    } 
+    }
 }
 
 // Triggered when the battery has changed level
@@ -228,8 +228,8 @@ void accel_tap_handler(AccelAxisType axis, int32_t direction) {
         GRect btRect = GRect(w/2-10, h-38, 20, 20);
         GRect batteryRect = GRect(23, h-38, 40, 20);
     #else
-        GRect tempRect = GRect(w - 97, 25, 50, 20);
-        GRect forecastHighLowRect = GRect(w - 105, 39, 65, 33);
+        GRect tempRect = GRect(w - 105, 25, 50, 20);
+        GRect forecastHighLowRect = GRect(w - 109, 42, 69, 33);
         GRect timeRect = GRect(0, h/2-30, w, 50);
         GRect stepRect = GRect(w/2, h-55, 40, 20);
         int targetAnalogWidth = w - 18;
