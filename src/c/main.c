@@ -1,5 +1,8 @@
 #include "src/c/luminosity.h"
 
+//TODO: fix peek notifications causing date line to cover the time
+//TODO: add status icons for "no location" and "no server", use bt icon layer to indicate
+
 // Triggered when bluetooth connects/disconnects
  void bluetooth_callback(bool connected) {
     // Show icon if disconnected
@@ -201,6 +204,7 @@
     update_time();
 }
 
+//todo: wait 500ms between toggles :P
 void accel_tap_handler(AccelAxisType axis, int32_t direction) {
   // A tap event occured
   s_forecast_layer_displaying_wind = !s_forecast_layer_displaying_wind;
@@ -215,32 +219,16 @@ void accel_tap_handler(AccelAxisType axis, int32_t direction) {
 
     int w = window_bounds.size.w;
     int h = window_bounds.size.h;
+    int targetAnalogWidth = w - 18;
 
-    //todo: clean up using layout_constants.h
-    #ifdef PBL_RECT
-        GRect tempRect = GRect(w - 50 - 23, 15, 50, 20);
-        GRect forecastHighLowRect = GRect(w - 88, 32, 65, 33);
-        GRect timeRect = GRect(0, h/2-30, w, 50);
-        GRect stepRect = GRect(20, h-38, w - 40, 20);
-        GRect analogRect = GRect(0, 0, w, h);
-
-        GRect conditionRect = GRect(18,18, 26,26);
-        GRect btRect = GRect(w/2-10, h-38, 20, 20);
-        GRect batteryRect = GRect(23, h-38, 40, 20);
-    #else
-        GRect tempRect = GRect(w - 105, 25, 50, 20);
-        GRect forecastHighLowRect = GRect(w - 109, 42, 69, 33);
-        GRect timeRect = GRect(0, h/2-30, w, 50);
-        GRect stepRect = GRect(w/2, h-55, 40, 20);
-        int targetAnalogWidth = w - 18;
-        GRect analogRect = GRect(w/2-targetAnalogWidth/2, h/2-targetAnalogWidth/2, targetAnalogWidth, targetAnalogWidth);
-
-        GRect conditionRect = GRect(43, 28, 35, 35);
-        GRect btRect = GRect(w/2-10, h-38, 20, 20);
-        GRect batteryRect = GRect(45, h-55, 40, 20);
-
-    #endif
-
+    GRect tempRect = TEMP_RECT;
+    GRect forecastHighLowRect = FORECAST_HIGHLOW_RECT;
+    GRect timeRect = TIME_RECT;
+    GRect stepRect = STEP_RECT;
+    GRect analogRect = ANALOG_RECT;
+    GRect conditionRect = CONDITION_RECT;
+    GRect btRect = BT_RECT;
+    GRect batteryRect = BAT_RECT;
     GRect dateRect;
     GTextAlignment dateAlign;
     if (settings.Analog) {
