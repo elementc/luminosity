@@ -42,7 +42,7 @@ void prv_update_display() {
     Layer* winrl = window_get_root_layer(s_main_window);
     GRect window_bounds = layer_get_unobstructed_bounds(winrl);
     int w = window_bounds.size.w;
-    int h = window_bounds.size.h;
+    int h = window_bounds.size.h;    
 
     if (settings.Analog) {
         layer_remove_from_parent(text_layer_get_layer(s_time_layer));
@@ -67,7 +67,8 @@ void prv_update_display() {
       layer_remove_from_parent(text_layer_get_layer(s_forecast_high_low_layer));
       layer_remove_from_parent(bitmap_layer_get_layer(s_conditions_layer));
       layer_remove_from_parent(effect_layer_get_layer(s_conditions_layer_inverter));
-    } else{
+    } 
+    else{
       layer_add_child(winrl, text_layer_get_layer(s_temp_layer));
       layer_add_child(winrl, text_layer_get_layer(s_forecast_high_low_layer));
       layer_add_child(winrl, bitmap_layer_get_layer(s_conditions_layer));
@@ -79,7 +80,8 @@ void prv_update_display() {
 
     if (settings.Invert_Colors && s_weather_ready){
       bitmap_layer_set_background_color(s_conditions_layer, COLOR_TIME);
-    } else{
+    }
+    else{
       bitmap_layer_set_background_color(s_conditions_layer, COLOR_CLEAR);
     }
     layer_mark_dirty(s_forecast_layer);

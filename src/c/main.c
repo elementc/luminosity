@@ -1,8 +1,27 @@
 #include "src/c/luminosity.h"
 
-//TODO: fix peek notifications causing date line to cover the time
-//TODO: add status icons for "no location" and "no server", use bt icon layer to indicate
+void prv_unobstructed_will_change(GRect final_unobstructed_screen_area, void *context) {
+  // Get the full size of the screen
+  GRect full_bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+  if (!grect_equal(&full_bounds, &final_unobstructed_screen_area)) {
+    // Screen is about to become obstructed, hide the date
+    layer_set_hidden(text_layer_get_layer(s_date_layer), true);
+  }
+}
 
+ void prv_unobstructed_did_change(void *context) {
+  // Get the full size of the screen
+  GRect full_bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+  // Get the total available screen real-estate
+  GRect bounds = layer_get_unobstructed_bounds(window_get_root_layer(s_main_window));
+  if (grect_equal(&full_bounds, &bounds)) {
+    // Screen is no longer obstructed, show the date
+    layer_set_hidden(text_layer_get_layer(s_date_layer), false);
+  }
+  prv_update_display();
+}
+
+//TODO: add status icons for "no location" and "no server", use bt icon layer to indicate
 // Triggered when bluetooth connects/disconnects
  void bluetooth_callback(bool connected) {
     // Show icon if disconnected
@@ -368,6 +387,11 @@ void accel_tap_handler(AccelAxisType axis, int32_t direction) {
     update_time_no_update_weather();
     battery_callback(battery_state_service_peek());
     bluetooth_callback(connection_service_peek_pebble_app_connection());
+     UnobstructedAreaHandlers handlers = {
+          .will_change = prv_unobstructed_will_change,
+          .did_change = prv_unobstructed_did_change
+    };
+    unobstructed_area_service_subscribe(handlers, NULL);
 
 
 }
