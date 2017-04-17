@@ -18,7 +18,7 @@ module.exports = [
                 "type": "toggle",
                 "messageKey": "CFG_ANALOG",
                 "defaultValue": false,
-                "label": "Analog Face"
+                "label": "Use analog face instead of digital"
             },
             {
                 "type": "toggle",
