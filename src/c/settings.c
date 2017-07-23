@@ -8,6 +8,7 @@ void prv_default_settings() {
     settings.Invert_Colors = false;
     settings.sunrise = 7;
     settings.sunset = 19;
+    settings.enable_wind_ring = true;
 }
 
 // Read settings from persistent storage

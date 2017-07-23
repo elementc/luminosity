@@ -23,6 +23,7 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
     Tuple *cfg_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CFG_CELSIUS);
     Tuple *cfg_invert_colors_tuple = dict_find(iterator, MESSAGE_KEY_CFG_INVERT_COLORS);
     Tuple *cfg_knots_tuple = dict_find(iterator, MESSAGE_KEY_CFG_KNOTS);
+    Tuple *cfg_enable_wind_ring_tuple = dict_find(iterator, MESSAGE_KEY_CFG_ENABLE_WIND_RING);
     if (cfg_analog_tuple) {
         APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received settings.");
         bool new_Analog = cfg_analog_tuple->value->int32 == 1;
@@ -34,6 +35,7 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context) {
         settings.Metric = new_Metric;
         settings.Invert_Colors = cfg_invert_colors_tuple->value->int32 == 1;
         settings.Knots = new_Knots;
+        settings.enable_wind_ring = cfg_enable_wind_ring_tuple->value->int32==1;
         prv_save_settings();
     }
 

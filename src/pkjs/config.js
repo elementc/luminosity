@@ -37,9 +37,15 @@ module.exports = [
             },
             {
                 "type": "toggle",
+                "messageKey": "CFG_ENABLE_WIND_RING",
+                "defaultValue": true,
+                "label": "Flick your wrist to swap between the precipitation ring and a ring showing wind forecast."
+            },
+            {
+                "type": "toggle",
                 "messageKey": "CFG_CELSIUS",
                 "defaultValue": false,
-                "label": "Use metric units (temp in celsius, wind in m/s instead of temp in farenheit, wind in mph)"
+                "label": "Use metric units (temp in celsius, wind in m/s instead of temp in farenheit, wind in mph)."
             },
             {
               "type": "toggle",
@@ -69,7 +75,7 @@ module.exports = [
             {
                 "type": "input",
                 "messageKey": "CFG_LAT",
-                "label": "Lattitude"
+                "label": "Latitude"
             },
             {
                 "type": "input",

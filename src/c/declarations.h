@@ -9,6 +9,7 @@ typedef struct ClaySettings {
     bool Invert_Colors;
     int sunrise;
     int sunset;
+    bool enable_wind_ring;
 } ClaySettings;
 
 // An instance of the struct

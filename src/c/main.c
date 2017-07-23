@@ -227,34 +227,35 @@ time_t last_tap_seconds = 0;
 uint16_t last_tap_ms = 0;
 //wait 500ms between toggles :P
 void accel_tap_handler(AccelAxisType axis, int32_t direction) {
-  time_t this_seconds;
-    uint16_t this_ms;
-    time_ms(&this_seconds, &this_ms);
-    APP_LOG(APP_LOG_LEVEL_INFO, "tap occured %d s %d ms later.", (int)this_seconds - (int)last_tap_seconds, this_ms - last_tap_ms);
+  if (settings.enable_wind_ring) {
+    time_t this_seconds;
+      uint16_t this_ms;
+      time_ms(&this_seconds, &this_ms);
+      APP_LOG(APP_LOG_LEVEL_INFO, "tap occured %d s %d ms later.", (int)this_seconds - (int)last_tap_seconds, this_ms - last_tap_ms);
 
-    if (this_seconds == last_tap_seconds){
-        if (this_ms - last_tap_ms > 750){
-            last_tap_seconds = this_seconds;
-            last_tap_ms = this_ms;
-        } else{
-            return;
-        }
-    } else if (this_seconds - last_tap_seconds == 1){
-        if (this_ms + 1000 - last_tap_ms > 750){
-            last_tap_seconds = this_seconds;
-            last_tap_ms = this_ms;
-        } else {
-            return;
-        }
-    } else{
-        last_tap_seconds = this_seconds;
-        last_tap_ms = this_ms;
-    }
+      if (this_seconds == last_tap_seconds){
+          if (this_ms - last_tap_ms > 750){
+              last_tap_seconds = this_seconds;
+              last_tap_ms = this_ms;
+          } else{
+              return;
+          }
+      } else if (this_seconds - last_tap_seconds == 1){
+          if (this_ms + 1000 - last_tap_ms > 750){
+              last_tap_seconds = this_seconds;
+              last_tap_ms = this_ms;
+          } else {
+              return;
+          }
+      } else{
+          last_tap_seconds = this_seconds;
+          last_tap_ms = this_ms;
+      }
 
-  // A tap event occured
-  s_forecast_layer_displaying_wind = !s_forecast_layer_displaying_wind;
-  prv_update_display();
-
+    // A tap event occured
+    s_forecast_layer_displaying_wind = !s_forecast_layer_displaying_wind;
+    prv_update_display();
+  }
 }
 
  void main_window_load(Window *window) {
