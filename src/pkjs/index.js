@@ -14,46 +14,11 @@ Pebble.addEventListener('appmessage',
 function locationSuccess(pos) {
     var lat = pos.coords.latitude;
     var lon = pos.coords.longitude;
-    //delete me debug
-    //lat = 28.6082;
-    //lon = -80.6041;
 
     var date = new Date();
 
-    //getCity(lat, lon);
     getWeather(lat, lon);
     getSpace(lat, lon, date);
-}
-
-function getCity(lat, lon) {
-    var key = '1fea09dcd5fb19e812f9';
-    var url = 'http://locationiq.org/v1/reverse.php?format=json&key=' + key + '&lat=' + lat + '&lon=' + lon + '&zoom=10';
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-        // responseText contains a JSON object with weather info
-        var json = JSON.parse(this.responseText);
-
-        console.log(JSON.stringify(json, null, 2));
-
-        var cityname = json.address.city;
-
-        // Assemble dictionary using our keys
-        var dictionary = {
-            'CITY': cityname,
-        };
-
-        // Send to Pebble
-        Pebble.sendAppMessage(dictionary,
-                              function(e) {
-                                  console.log('City info sent to Pebble successfully!');
-                              },
-                              function(e) {
-                                  console.log('Error sending city info to Pebble!');
-                              }
-                             );
-    } ;
-    xhr.open('GET', url);
-    xhr.send();
 }
 
 function handleWeatherData() {
@@ -174,6 +139,14 @@ function handleWeatherData() {
                          );
 }
 
+function handleWeatherTimeout() {
+    console.log("Weather request timed out.");
+}
+
+function handleWeatherError() {
+    console.log("Weather request errored out.");
+}
+
 function getWeather(lat, lon) {
 
     var apiKey = "yall lost that privelege when you started scooping the weather data i paid for"; //i know this is open source and in the clear, but please get your own key if you fork this. I'm paying for this out of my own pocket.
@@ -183,9 +156,11 @@ function getWeather(lat, lon) {
 
         var pebble_id = Pebble.getWatchToken();
         var url = 'http://voidrunner.m45.space/pebble-weather/' + pebble_id + '/' + lat + ',' + lon + '?units=' + units;
-        console.log(url);
+        console.log("Loading weather data from: " + url);
         var xhr = new XMLHttpRequest();
         xhr.onload = handleWeatherData;
+        xhr.ontimeout = handleWeatherTimeout;
+        xhr.onerror = handleWeatherError;
         xhr.open('GET', url);
         xhr.send();
     }
@@ -221,7 +196,6 @@ function getLocation() {
         var date = new Date();
         var lat = Number(settings.CFG_LAT);
         var lon = Number(settings.CFG_LON);
-        //getCity(lat, lon);
         getWeather(lat, lon);
         getSpace(lat, lon, date);
         return;
