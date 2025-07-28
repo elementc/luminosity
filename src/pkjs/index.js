@@ -1,4 +1,5 @@
 var space = require('./space');
+var weather = require('./openmeteoweatherdata');
 
 
 // Listen for when an AppMessage is received
@@ -17,9 +18,10 @@ function locationSuccess(pos) {
 
     var date = new Date();
 
-    getWeather(lat, lon);
+    weather.getWeather(lat, lon);
     getSpace(lat, lon, date);
 }
+
 
 function handleWeatherData() {
     // responseText contains a JSON object with weather info
@@ -139,35 +141,8 @@ function handleWeatherData() {
                          );
 }
 
-function handleWeatherTimeout() {
-    console.log("Weather request timed out.");
-}
-
-function handleWeatherError() {
-    console.log("Weather request errored out.");
-}
-
-function getWeather(lat, lon) {
-
-    var apiKey = "yall lost that privelege when you started scooping the weather data i paid for"; //i know this is open source and in the clear, but please get your own key if you fork this. I'm paying for this out of my own pocket.
-    var units = settings.CFG_CELSIUS ? 'si' : 'us';
-
-    if (apiKey !== "") {
-
-        var pebble_id = Pebble.getWatchToken();
-        var url = 'http://voidrunner.m45.space/pebble-weather/' + pebble_id + '/' + lat + ',' + lon + '?units=' + units;
-        console.log("Loading weather data from: " + url);
-        var xhr = new XMLHttpRequest();
-        xhr.onload = handleWeatherData;
-        xhr.ontimeout = handleWeatherTimeout;
-        xhr.onerror = handleWeatherError;
-        xhr.open('GET', url);
-        xhr.send();
-    }
-}
-
 function locationError(err) {
-    console.log('Error requesting location!');
+  console.log('location error (' + err.code + '): ' + err.message);
 }
 
 function getSpace(lat, lon, date) {
@@ -196,7 +171,7 @@ function getLocation() {
         var date = new Date();
         var lat = Number(settings.CFG_LAT);
         var lon = Number(settings.CFG_LON);
-        getWeather(lat, lon);
+        weather.getWeather(lat, lon);
         getSpace(lat, lon, date);
         return;
     }
