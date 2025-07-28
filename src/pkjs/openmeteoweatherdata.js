@@ -6,14 +6,14 @@
 //     var XMLHttpRequest = require('xhr2');
 // }
 
-function get_current_temperature(json){
+function get_current_temperature(json) {
     return Math.round(json.current.temperature_2m);
 }
 
-function get_high_temperature(json, start_offset){
+function get_high_temperature(json, start_offset) {
     var high_temperature = -999999.0;
-    for (var i = start_offset; i < start_offset + 24; i++){
-        if (json.hourly.temperature_2m[i] > high_temperature){
+    for (var i = start_offset; i < start_offset + 24; i++) {
+        if (json.hourly.temperature_2m[i] > high_temperature) {
             high_temperature = json.hourly.temperature_2m[i];
         }
     }
@@ -21,18 +21,18 @@ function get_high_temperature(json, start_offset){
     return Math.round(high_temperature);
 }
 
-function get_low_temperature(json, start_offset){
+function get_low_temperature(json, start_offset) {
     var low_temperature = 999999.0;
 
-    for (var i = start_offset; i < start_offset + 24; i++){
-        if (json.hourly.temperature_2m[i] < low_temperature){
+    for (var i = start_offset; i < start_offset + 24; i++) {
+        if (json.hourly.temperature_2m[i] < low_temperature) {
             low_temperature = json.hourly.temperature_2m[i];
         }
     }
     return Math.round(low_temperature);
 }
 
-function build_temperature_forecast_str(json, start_offset){
+function build_temperature_forecast_str(json, start_offset) {
     var high_temperature = get_high_temperature(json, start_offset);
     var low_temperature = get_low_temperature(json, start_offset);
 
@@ -40,7 +40,7 @@ function build_temperature_forecast_str(json, start_offset){
 
     var temp_str = "";
 
-    for (var i = start_offset; i < start_offset + 24; i++){
+    for (var i = start_offset; i < start_offset + 24; i++) {
         var scale = json.hourly.temperature_2m[i] - low_temperature;
         var intensity = Math.round(scale / delta * 9);
 
@@ -53,14 +53,14 @@ function build_temperature_forecast_str(json, start_offset){
     return temp_str;
 }
 
-function build_cloud_cover_forecast_str(json, start_offset){
+function build_cloud_cover_forecast_str(json, start_offset) {
     var cloud_str = "";
 
-    for (var i = start_offset; i < start_offset + 24; i++){
+    for (var i = start_offset; i < start_offset + 24; i++) {
         var coverage = json.hourly.cloud_cover[i];
-        if (coverage < 40){
+        if (coverage < 40) {
             cloud_str += '0';
-        } else if (coverage < 75){
+        } else if (coverage < 75) {
             cloud_str += '1';
         } else {
             cloud_str += '2';
@@ -83,29 +83,29 @@ function handleWeatherData() {
     // Assemble dictionary using our keys
     var dictionary = {
         'TEMPERATURE': get_current_temperature(json),
-        'CONDITIONS': "wind",
-        'WIND_SPEED': 15,
-        'WIND_BEARING': 45,
+        'CONDITIONS': "clear-day", // TODO
+        'WIND_SPEED': 15, // TODO
+        'WIND_BEARING': 45, // TODO
         'FORECAST_CLOUDS': build_cloud_cover_forecast_str(json, start_offset),
-        'FORECAST_PRECIP_TYPE': "_________________________",
-        'FORECAST_PRECIP_INTENSITY': "0000000000000000000000000",
-        'FORECAST_WIND_INTENSITY': "0000000000000000000000000",
+        'FORECAST_PRECIP_TYPE': "_________________________", // TODO
+        'FORECAST_PRECIP_INTENSITY': "0000000000000000000000000", // TODO
+        'FORECAST_WIND_INTENSITY': "0000000000000000000000000", // TODO
         'FORECAST_TEMP': build_temperature_forecast_str(json, start_offset),
         'FORECAST_HIGH': get_high_temperature(json, start_offset),
         'FORECAST_LOW': get_low_temperature(json, start_offset)
-        // 'FORECAST_WIND_HIGH': 20, // these dont have a render yet
+        // 'FORECAST_WIND_HIGH': 20, // these dont have a render yet, can strike
         // 'FORECAST_WIND_LOW': 0
     };
 
     // Send to Pebble
     Pebble.sendAppMessage(dictionary,
-                          function(e) {
-                              console.log('Weather info sent to Pebble successfully!');
-                          },
-                          function(e) {
-                              console.log('Error sending weather info to Pebble!');
-                          }
-                         );
+        function (e) {
+            console.log('Weather info sent to Pebble successfully!');
+        },
+        function (e) {
+            console.log('Error sending weather info to Pebble!');
+        }
+    );
 }
 
 function handleWeatherTimeout() {
@@ -134,7 +134,7 @@ function getWeather(lat, lon, units) {
     xhr.onerror = handleWeatherError;
     xhr.open('GET', url);
     xhr.send();
-    
+
 }
 
 
