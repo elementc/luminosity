@@ -10,11 +10,11 @@ function get_current_temperature(json) {
     return Math.round(json.current.temperature_2m);
 }
 
-function get_current_wind_speed(json){
+function get_current_wind_speed(json) {
     return Math.round(json.current.wind_speed_10m);
 }
 
-function get_current_wind_bearing(json){
+function get_current_wind_bearing(json) {
     return Math.round(json.current.wind_direction_10m);
 }
 
@@ -52,8 +52,8 @@ function build_temperature_forecast_str(json, start_offset) {
         var scale = json.hourly.temperature_2m[i] - low_temperature;
         var intensity = Math.round(scale / delta * 9);
 
-        intensity = (intensity > 10 ? 10 : intensity);
-        intensity = (intensity < 0 ? 0 : intensity);
+        intensity = Math.min(9, intensity);
+        intensity = Math.max(0, intensity);
 
         temp_str += ("" + intensity);
     }
@@ -78,6 +78,50 @@ function build_cloud_cover_forecast_str(json, start_offset) {
     return cloud_str;
 }
 
+function get_high_wind_speed(json, start_offset) {
+    var high_speed = -999999.9;
+    for (var i = start_offset; i < start_offset + 24; i++) {
+        if (json.hourly.wind_speed_10m[i] > high_speed) {
+            high_speed = json.hourly.wind_speed_10m[i];
+        }
+    }
+
+    return Math.round(high_speed);
+}
+
+function get_low_wind_speed(json, start_offset) {
+    var low_speed = 999999.9;
+    for (var i = start_offset; i < start_offset + 24; i++) {
+        if (json.hourly.wind_speed_10m[i] < low_speed) {
+            low_speed = json.hourly.wind_speed_10m[i];
+        }
+    }
+
+    return Math.round(low_speed);
+}
+
+function build_wind_intensity_forecast_string(json, start_offset) {
+    var high_speed = get_high_wind_speed(json, start_offset);
+    var low_speed = get_low_wind_speed(json, start_offset);
+
+    var delta = high_speed - low_speed;
+
+    var wind_str = "";
+
+    for (var i = start_offset; i < start_offset + 24; i++) {
+        var scale = json.hourly.wind_speed_10m[i] - low_speed;
+        var intensity = Math.round(scale / delta * 9);
+
+        intensity = Math.min(9, intensity);
+        intensity = Math.max(0, intensity);
+
+        wind_str += ("" + intensity);
+    }
+
+    console.log("calculated wind_str: ", wind_str);
+    return wind_str;
+}
+
 function handleWeatherData() {
     // responseText contains a JSON object with weather info
     var json = JSON.parse(this.responseText);
@@ -95,7 +139,7 @@ function handleWeatherData() {
         'FORECAST_CLOUDS': build_cloud_cover_forecast_str(json, start_offset),
         'FORECAST_PRECIP_TYPE': "_________________________", // TODO
         'FORECAST_PRECIP_INTENSITY': "0000000000000000000000000", // TODO
-        'FORECAST_WIND_INTENSITY': "0000000000000000000000000", // TODO
+        'FORECAST_WIND_INTENSITY': build_wind_intensity_forecast_string(json, start_offset),
         'FORECAST_TEMP': build_temperature_forecast_str(json, start_offset),
         'FORECAST_HIGH': get_high_temperature(json, start_offset),
         'FORECAST_LOW': get_low_temperature(json, start_offset)
