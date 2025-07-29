@@ -1,25 +1,6 @@
 var space = require('./space');
 
-// if (Pebble){
-//     console.log("Pebble defined, using.");
-// } else {
-//     console.log("Pebble not defined, loading shim.");
-//     var Pebble = require('./pebble_shim');
-//     var XMLHttpRequest = require('xhr2');
-// }
-
-// "clear-day",
-// "clear-night", 
-// "rain", 
-// "snow", 
-// "sleet", 
-// "wind", (not used)
-// "fog", 
-// "cloudy", 
-// "partly-cloudy-day", 
-// "partly-cloudy-night"
-
-let openmeteo_wmo_to_icon_day = {
+var openmeteo_wmo_to_icon_day = {
     0: "clear-day", // clear
     1: "clear-day", // mainly clear
     2: "partly-cloudy-day", // partly cloudy
@@ -51,7 +32,7 @@ let openmeteo_wmo_to_icon_day = {
 
 };
 
-let openmeteo_wmo_to_icon_night = {
+var openmeteo_wmo_to_icon_night = {
     0: "clear-night", // clear
     1: "clear-night", // mainly clear
     2: "partly-cloudy-night", // partly cloudy
@@ -83,6 +64,32 @@ let openmeteo_wmo_to_icon_night = {
 
 };
 
+var openmeteo_wmo_to_precip_type = {
+    51: "r", // drizzle, slight
+    53: "r", // drizzle: moderate 
+    55: "r", // drizzle: heavy
+    56: "l", // light freezing drizzle
+    57: "l", // heavy freezing drizzle
+    61: "r", // rain: slight
+    63: "r", // rain: moderate
+    65: "r", // rain: heavy
+    66: "l", // freezing rain: light
+    67: "l", // freezing rain: heavy
+    71: "s", // snow: slight
+    73: "s", // snow: moderate
+    75: "s", // snow: heavy
+    77: "s", // "snow grains"
+    80: "r", // rain showers: slight
+    81: "r", // rain showers: moderate
+    82: "r", // rain showers: violent :D
+    85: "s", // snow showers: slight
+    86: "s", // snow showers: heavy
+    95: "r", // thunderstorm slight or moderate
+    96: "r", // thunderstorm with slight hail
+    99: "r"  // thunderstorm with heavy hail 
+
+};
+
 function get_icon_for_weather(json) {
     var hour = new Date().getHours();
 
@@ -93,6 +100,11 @@ function get_icon_for_weather(json) {
     } else {
         return openmeteo_wmo_to_icon_day[wmo_code] || "clear-day";
     }
+
+}
+
+function get_precip_type_for_wmo_code(wmo_code) {
+    return openmeteo_wmo_to_precip_type[wmo_code] || "_";
 
 }
 
@@ -212,13 +224,24 @@ function build_wind_intensity_forecast_string(json, start_offset) {
     return wind_str;
 }
 
+function build_precip_type_forecast_string(json, start_offset) {
+
+    var precip_type_str = "";
+
+    for (var i = start_offset; i < start_offset + 24; i++) {
+        var wmo_code = json.hourly.weather_code[i];
+        precip_type_str += get_precip_type_for_wmo_code(wmo_code);
+    }
+
+    console.log("calculated precip_type_str: ", precip_type_str);
+    return precip_type_str;
+}
+
 function handleWeatherData() {
     // responseText contains a JSON object with weather info
     var json = JSON.parse(this.responseText);
 
-    var date = new Date();
-
-    var start_offset = date.getHours(); // Start counting from the current hour (god i hope this is base 24)
+    var start_offset = new Date().getHours(); // Start counting from the current hour (god i hope this is base 24)
 
     console.log("Assembling data for " + json.hourly.time[start_offset] + " through " + json.hourly.time[start_offset + 24] + "...");
     console.log("Sunrise: " + space.sunrise + " Sunset: " + space.sunset);
@@ -230,14 +253,12 @@ function handleWeatherData() {
         'WIND_SPEED': get_current_wind_speed(json),
         'WIND_BEARING': get_current_wind_bearing(json),
         'FORECAST_CLOUDS': build_cloud_cover_forecast_str(json, start_offset),
-        'FORECAST_PRECIP_TYPE': "_________________________", // TODO
-        'FORECAST_PRECIP_INTENSITY': "0000000000000000000000000", // TODO
+        'FORECAST_PRECIP_TYPE': build_precip_type_forecast_string(json, start_offset),
+        'FORECAST_PRECIP_INTENSITY': "9999999999999999999999999", // TODO
         'FORECAST_WIND_INTENSITY': build_wind_intensity_forecast_string(json, start_offset),
         'FORECAST_TEMP': build_temperature_forecast_str(json, start_offset),
         'FORECAST_HIGH': get_high_temperature(json, start_offset),
         'FORECAST_LOW': get_low_temperature(json, start_offset)
-        // 'FORECAST_WIND_HIGH': 20, // these dont have a render yet, can strike
-        // 'FORECAST_WIND_LOW': 0
     };
 
     // Send to Pebble
