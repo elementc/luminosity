@@ -236,6 +236,26 @@ function build_precip_type_forecast_string(json, start_offset) {
     return precip_type_str;
 }
 
+function build_precip_intensity_forecast_string(json, start_offset){
+    var precip_intensity_str = "";
+
+    for (var i = start_offset; i < start_offset + 24; i++) {
+        var probability = json.hourly.precipitation_probability[i];
+        if (probability != 0){
+            var intensity = json.hourly.precipitation[i];
+            var score = Math.min(Math.round(3 * probability / 100) + Math.round(2 * intensity), 9);
+            precip_intensity_str += ("" + score);
+        } else{
+            precip_intensity_str += "0";
+        }
+    }
+
+    console.log("calculated precip_intensity_str: " + precip_intensity_str);
+
+    return precip_intensity_str;
+
+}
+
 function handleWeatherData() {
     // responseText contains a JSON object with weather info
     var json = JSON.parse(this.responseText);
@@ -253,7 +273,7 @@ function handleWeatherData() {
         'WIND_BEARING': get_current_wind_bearing(json),
         'FORECAST_CLOUDS': build_cloud_cover_forecast_str(json, start_offset),
         'FORECAST_PRECIP_TYPE': build_precip_type_forecast_string(json, start_offset),
-        'FORECAST_PRECIP_INTENSITY': "9999999999999999999999999", // TODO
+        'FORECAST_PRECIP_INTENSITY': build_precip_intensity_forecast_string(json, start_offset),
         'FORECAST_WIND_INTENSITY': build_wind_intensity_forecast_string(json, start_offset),
         'FORECAST_TEMP': build_temperature_forecast_str(json, start_offset),
         'FORECAST_HIGH': get_high_temperature(json, start_offset),
@@ -283,7 +303,7 @@ function getWeather(lat, lon, units) {
 
     // TODO: need to figure out units
     var current_channels = '&current=weather_code,temperature_2m,wind_speed_10m,wind_direction_10m,precipitation';
-    var hourly_channels = '&hourly=temperature_2m,cloud_cover,precipitation,wind_speed_10m,weather_code';
+    var hourly_channels = '&hourly=temperature_2m,cloud_cover,precipitation,precipitation_probability,wind_speed_10m,weather_code';
     var units = "&wind_speed_unit=mph&temperature_unit=fahrenheit"
     var settings = '&timezone=auto&forecast_days=3';
     var base = 'https://api.open-meteo.com/v1/forecast?';
