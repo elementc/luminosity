@@ -1,3 +1,5 @@
+var space = require('./space');
+
 // if (Pebble){
 //     console.log("Pebble defined, using.");
 // } else {
@@ -5,6 +7,94 @@
 //     var Pebble = require('./pebble_shim');
 //     var XMLHttpRequest = require('xhr2');
 // }
+
+// "clear-day",
+// "clear-night", 
+// "rain", 
+// "snow", 
+// "sleet", 
+// "wind", (not used)
+// "fog", 
+// "cloudy", 
+// "partly-cloudy-day", 
+// "partly-cloudy-night"
+
+let openmeteo_wmo_to_icon_day = {
+    0: "clear-day", // clear
+    1: "clear-day", // mainly clear
+    2: "partly-cloudy-day", // partly cloudy
+    3: "cloudy", // overcast
+    45: "fog", // fog
+    48: "fog", // "depositing rime fog" whatever that means
+    51: "rain", // drizzle, slight
+    53: "rain", // drizzle: moderate 
+    55: "rain", // drizzle: heavy
+    56: "sleet", // light freezing drizzle
+    57: "sleet", // heavy freezing drizzle
+    61: "rain", // rain: slight
+    63: "rain", // rain: moderate
+    65: "rain", // rain: heavy
+    66: "sleet", // freezing rain: light
+    67: "sleet", // freezing rain: heavy
+    71: "snow", // snow: slight TODO: icon needs rework
+    73: "snow", // snow: moderate
+    75: "snow", // snow: heavy
+    77: "snow", // "snow grains" I had to google it
+    80: "rain", // rain showers: slight
+    81: "rain", // rain showers: moderate
+    82: "rain", // rain showers: violent :D
+    85: "snow", // snow showers: slight
+    86: "snow", // snow showers: heavy
+    95: "rain", // thunderstorm slight or moderate TODO: icon?
+    96: "rain", // thunderstorm with slight hail TODO: icon?
+    99: "rain" // thunderstorm with heavy hail TODO: icon?
+
+};
+
+let openmeteo_wmo_to_icon_night = {
+    0: "clear-night", // clear
+    1: "clear-night", // mainly clear
+    2: "partly-cloudy-night", // partly cloudy
+    3: "cloudy", // overcast
+    45: "fog", // fog
+    48: "fog", // "depositing rime fog" whatever that means
+    51: "rain", // drizzle, slight
+    53: "rain", // drizzle: moderate 
+    55: "rain", // drizzle: heavy
+    56: "sleet", // light freezing drizzle
+    57: "sleet", // heavy freezing drizzle
+    61: "rain", // rain: slight
+    63: "rain", // rain: moderate
+    65: "rain", // rain: heavy
+    66: "sleet", // freezing rain: light
+    67: "sleet", // freezing rain: heavy
+    71: "snow", // snow: slight
+    73: "snow", // snow: moderate
+    75: "snow", // snow: heavy
+    77: "snow", // "snow grains" I had to google it
+    80: "rain", // rain showers: slight
+    81: "rain", // rain showers: moderate
+    82: "rain", // rain showers: violent :D
+    85: "snow", // snow showers: slight
+    86: "snow", // snow showers: heavy
+    95: "rain", // thunderstorm slight or moderate TODO: icon?
+    96: "rain", // thunderstorm with slight hail TODO: icon?
+    99: "rain" // thunderstorm with heavy hail TODO: icon?
+
+};
+
+function get_icon_for_weather(json) {
+    var hour = new Date().getHours();
+
+    var wmo_code = json.current.weather_code;
+
+    if (hour >= space.sunset || hour < space.sunrise) {
+        return openmeteo_wmo_to_icon_night[wmo_code] || "clear-night"; // TODO: need a "unknown code" icon
+    } else {
+        return openmeteo_wmo_to_icon_day[wmo_code] || "clear-day";
+    }
+
+}
 
 function get_current_temperature(json) {
     return Math.round(json.current.temperature_2m);
@@ -130,10 +220,13 @@ function handleWeatherData() {
 
     var start_offset = date.getHours(); // Start counting from the current hour (god i hope this is base 24)
 
+    console.log("Assembling data for " + json.hourly.time[start_offset] + " through " + json.hourly.time[start_offset + 24] + "...");
+    console.log("Sunrise: " + space.sunrise + " Sunset: " + space.sunset);
+
     // Assemble dictionary using our keys
     var dictionary = {
         'TEMPERATURE': get_current_temperature(json),
-        'CONDITIONS': "clear-day", // TODO
+        'CONDITIONS': get_icon_for_weather(json),
         'WIND_SPEED': get_current_wind_speed(json),
         'WIND_BEARING': get_current_wind_bearing(json),
         'FORECAST_CLOUDS': build_cloud_cover_forecast_str(json, start_offset),
@@ -170,7 +263,7 @@ function getWeather(lat, lon, units) {
 
     // TODO: need to figure out units
     var current_channels = '&current=weather_code,temperature_2m,wind_speed_10m,wind_direction_10m,precipitation';
-    var hourly_channels = '&hourly=temperature_2m,cloud_cover,precipitation,wind_direction_10m,wind_speed_10m,weather_code';
+    var hourly_channels = '&hourly=temperature_2m,cloud_cover,precipitation,wind_speed_10m,weather_code';
     var units = "&wind_speed_unit=mph&temperature_unit=fahrenheit"
     var settings = '&timezone=auto&forecast_days=3';
     var base = 'https://api.open-meteo.com/v1/forecast?';
@@ -184,6 +277,10 @@ function getWeather(lat, lon, units) {
     xhr.onerror = handleWeatherError;
     xhr.open('GET', url);
     xhr.send();
+
+    // While that's cookin', update the sunrise/sunset times.
+    var date = new Date();
+    space.calculate(lat, lon, date);
 
 }
 
