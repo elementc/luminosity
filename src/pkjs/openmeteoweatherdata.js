@@ -225,7 +225,6 @@ function build_wind_intensity_forecast_string(json, start_offset) {
 }
 
 function build_precip_type_forecast_string(json, start_offset) {
-
     var precip_type_str = "";
 
     for (var i = start_offset; i < start_offset + 24; i++) {
