@@ -24,7 +24,7 @@ module.exports = [
                 "type": "toggle",
                 "messageKey": "CFG_INVERT_COLORS",
                 "defaultValue": false,
-                "label": "Use lighter color palatte"
+                "label": "Use lighter color palette"
             }
         ]
     },

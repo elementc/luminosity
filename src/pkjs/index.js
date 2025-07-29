@@ -24,6 +24,7 @@ function locationSuccess(pos) {
 
 function locationError(err) {
     console.log('location error (' + err.code + '): ' + err.message);
+    // TODO: should cache last location somewhere...
 }
 
 function getSpace(lat, lon, date) {

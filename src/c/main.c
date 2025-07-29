@@ -160,7 +160,7 @@ void prv_unobstructed_will_change(GRect final_unobstructed_screen_area, void *co
             GPoint pt1 = rayFrom(DEG_TO_TRIGANGLE(i * 30), center.x - 25);
             GPoint pt2 = rayFrom(DEG_TO_TRIGANGLE(i * 30), center.x - 22);
             bool big = i%3==0;
-            //todo replace colors with palatte
+            //todo replace colors with palette
             graphics_context_set_stroke_color(ctx, COLOR_WINDOW);
             graphics_context_set_stroke_width(ctx, 2);
             graphics_draw_line(ctx, pt1, pt2);
