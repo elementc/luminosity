@@ -236,16 +236,16 @@ function build_precip_type_forecast_string(json, start_offset) {
     return precip_type_str;
 }
 
-function build_precip_intensity_forecast_string(json, start_offset){
+function build_precip_intensity_forecast_string(json, start_offset) {
     var precip_intensity_str = "";
 
     for (var i = start_offset; i < start_offset + 24; i++) {
         var probability = json.hourly.precipitation_probability[i];
-        if (probability != 0){
+        if (probability != 0) {
             var intensity = json.hourly.precipitation[i];
             var score = Math.min(Math.round(3 * probability / 100) + Math.round(2 * intensity), 9);
             precip_intensity_str += ("" + score);
-        } else{
+        } else {
             precip_intensity_str += "0";
         }
     }
