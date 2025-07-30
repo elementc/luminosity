@@ -5,7 +5,7 @@
 
 GPoint hours(int hour, int w, int h, int b);
 
-#else //round
+#else // round
 
 int hr_to_a(int hour);
 
