@@ -1,6 +1,5 @@
 # Luminosity
 Digital or analog watchface that shows an eminently glanceable 24 hour weather forecast. Steps and bluetooth connection alerts, too!
-Forked from [karantza/Planets_PebbleFace](https://github.com/karantza/Planets_PebbleFace)
 
 ![face preview](/animated.gif?raw=true)
 
@@ -15,10 +14,10 @@ Thickness of the precipitation ring indicates intensity- a short, thick band of 
 
 Bluetooth connectivity alerts are present. Feel free to email with feature requests- casey@spacewalkpublishing.us.
 
-Weather data powered by Dark Sky. If you fork this app, please replace my key with your own. 
+Weather data powered by [openmeteo](https://open-meteo.com/).
 
 Design heavily inspired by Krona Sunlight, an Android Wear face.
 
-Built from Planets, an open source face by Alex Karantza. Check it out if you like astronomy- it's very cool.
+Built from [Planets, an open source face by Alex Karantza](https://github.com/karantza/Planets_PebbleFace). Check it out if you like astronomy- it's very cool.
 
 
