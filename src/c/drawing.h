@@ -11,5 +11,6 @@ int hr_to_a(int hour);
 
 #endif
 
-void calculate_perimiter(Layer* layer);
+void calculate_perimeter(Layer* layer);
 
+GPoint rayFrom(int tri, int radius);
