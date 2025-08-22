@@ -1,5 +1,5 @@
-#include <pebble.h>
 #pragma once
+#include <pebble.h>
 
 void update_colors();
 

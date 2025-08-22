@@ -13,4 +13,3 @@ int hr_to_a(int hour);
 
 void calculate_perimiter(Layer* layer);
 
-void apply_colors_to_layers();

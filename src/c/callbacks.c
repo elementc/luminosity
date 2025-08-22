@@ -1,5 +1,12 @@
 #include "src/c/callbacks.h"
 #include "src/c/declarations.h"
+#include "src/c/update.h"
+
+// tick has occurred
+void tick_handler(struct tm* tick_time, TimeUnits units_changed) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Time tick occured.");
+  update_time();
+}
 
 // TODO: add status icons for "no location" and "no server", use bt icon layer
 // to indicate
@@ -66,5 +73,65 @@ void health_handler(HealthEventType event, void* context) {
   } break;
   default:
     break;
+  }
+}
+
+void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,
+                                  void* context) {
+  // Get the full size of the screen
+  GRect full_bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+  if (!grect_equal(&full_bounds, &final_unobstructed_screen_area)) {
+    // Screen is about to become obstructed, hide the date
+    layer_set_hidden(text_layer_get_layer(s_date_layer), true);
+  }
+}
+
+void prv_unobstructed_did_change(void* context) {
+  // Get the full size of the screen
+  GRect full_bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+  // Get the total available screen real-estate
+  GRect bounds =
+      layer_get_unobstructed_bounds(window_get_root_layer(s_main_window));
+  if (grect_equal(&full_bounds, &bounds)) {
+    // Screen is no longer obstructed, show the date
+    layer_set_hidden(text_layer_get_layer(s_date_layer), false);
+  }
+  prv_update_display();
+}
+
+
+time_t last_tap_seconds = 0;
+uint16_t last_tap_ms = 0;
+// wait 500ms between toggles :P
+void accel_tap_handler(AccelAxisType axis, int32_t direction) {
+  if (settings.enable_wind_ring) {
+    time_t this_seconds;
+    uint16_t this_ms;
+    time_ms(&this_seconds, &this_ms);
+    APP_LOG(APP_LOG_LEVEL_INFO, "tap occured %d s %d ms later.",
+            (int)this_seconds - (int)last_tap_seconds, this_ms - last_tap_ms);
+
+    if (this_seconds == last_tap_seconds) {
+      if (this_ms - last_tap_ms > 750) {
+        last_tap_seconds = this_seconds;
+        last_tap_ms = this_ms;
+      } else {
+        return;
+      }
+    } else if (this_seconds - last_tap_seconds == 1) {
+      if (this_ms + 1000 - last_tap_ms > 750) {
+        last_tap_seconds = this_seconds;
+        last_tap_ms = this_ms;
+      } else {
+        return;
+      }
+    } else {
+      last_tap_seconds = this_seconds;
+      last_tap_ms = this_ms;
+    }
+
+    // A tap event occured
+    s_forecast_layer_displaying_wind = !s_forecast_layer_displaying_wind;
+    prv_update_display();
   }
 }

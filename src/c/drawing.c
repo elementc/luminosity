@@ -1,6 +1,6 @@
 #include "src/c/luminosity.h"
-#ifdef PBL_RECT
 
+#ifdef PBL_RECT
 // angle figurer for square pebbles
 GPoint hours(int hour, int w, int h, int b) {
   w -= b * 2;
@@ -83,27 +83,4 @@ void calculate_perimiter(Layer* layer) {
   lowerright = halftop + sidecount;
   lowerleft = halftop + sidecount + topcount;
   upperleft = halftop + sidecount + topcount + sidecount;
-}
-
-// set colors to layers and mark all dirty
-void apply_colors_to_layers() {
-  window_set_background_color(s_main_window, COLOR_WINDOW);
-  text_layer_set_text_color(s_temp_layer, COLOR_TEMP);
-  text_layer_set_text_color(s_wind_speed_layer, COLOR_TEMP);
-  text_layer_set_text_color(s_forecast_high_low_layer, COLOR_TEMP);
-  text_layer_set_text_color(s_wind_bearing_layer, COLOR_TEMP);
-  text_layer_set_text_color(s_time_layer, COLOR_TIME);
-  text_layer_set_text_color(s_date_layer, COLOR_DATE);
-  text_layer_set_text_color(s_battery_text_layer, COLOR_STEPS);
-  text_layer_set_text_color(s_steps_layer, COLOR_STEPS);
-  layer_mark_dirty(window_get_root_layer(s_main_window));
-  layer_mark_dirty(text_layer_get_layer(s_temp_layer));
-  layer_mark_dirty(bitmap_layer_get_layer(s_bt_icon_layer));
-  layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
-
-  effect_layer_remove_effect(s_conditions_layer_inverter);
-  if (settings.Invert_Colors && s_weather_ready) {
-    effect_layer_add_effect(s_conditions_layer_inverter, effect_invert_bw_only,
-                            NULL);
-  }
 }

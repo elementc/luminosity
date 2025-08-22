@@ -1,4 +1,5 @@
 #include "src/c/luminosity.h"
+#include "src/c/render.h"
 
 // Initialize the default settings
 void prv_default_settings() {
