@@ -1,7 +1,8 @@
-#include <pebble.h>
 #pragma once
+#include <pebble.h>
 
-// Define our settings struct
+#define HOURLY_WEATHER_DATA_BUFFER_LEN 72
+
 typedef struct ClaySettings {
   bool Analog;
   bool Metric;
@@ -12,8 +13,12 @@ typedef struct ClaySettings {
   bool enable_wind_ring;
 } ClaySettings;
 
-// An instance of the struct
+typedef struct WeatherCache{
+  
+} WeatherCache;
+
 extern ClaySettings settings;
+extern WeatherCache weather_cache;
 
 /* Main */
 extern Window* s_main_window;
@@ -72,10 +77,11 @@ extern GPoint center;
 
 // Persistent storage key
 #define SETTINGS_KEY 1
+#define WEATHER_CACHE_KEY 2
 
-extern char date_buffer[16];
+extern char date_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern char time_buffer[6];
 extern char temperature_buffer[8];
-extern char forecast_high_low_buffer[16];
-extern char wind_speed_buffer[16];
-extern char wind_bearing_buffer[16];
+extern char forecast_high_low_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
+extern char wind_speed_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
+extern char wind_bearing_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];

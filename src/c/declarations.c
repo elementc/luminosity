@@ -1,7 +1,8 @@
 #include "src/c/luminosity.h"
 
-// An instance of the struct
 ClaySettings settings;
+
+WeatherCache weather_cache;
 
 /* Main */
 Window* s_main_window;
@@ -67,9 +68,9 @@ int upperright, lowerright, lowerleft, upperleft, step;
 GRect bounds;
 GPoint center;
 
-char date_buffer[16];
+char date_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
 char time_buffer[] = "00:00";
 char temperature_buffer[8];
-char forecast_high_low_buffer[16];
-char wind_speed_buffer[16];
-char wind_bearing_buffer[16];
+char forecast_high_low_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
+char wind_speed_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
+char wind_bearing_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
