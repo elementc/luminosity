@@ -17,13 +17,13 @@ TextLayer* s_temp_layer;
 TextLayer* s_forecast_high_low_layer;
 TextLayer* s_wind_speed_layer;
 TextLayer* s_wind_bearing_layer;
-char forecast_clouds_str[25];
-char forecast_precip_type_str[25];
-char forecast_precip_intensity_str[25];
-char forecast_temp_str[25];
-char forecast_wind_intensity_str[25];
-char wind_direction[6];
-char conditons_string[35];
+char forecast_clouds_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+char forecast_precip_type_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+char forecast_precip_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+char forecast_temp_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+char forecast_wind_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+
+
 int temperature, tempHigh, tempLow, windSpeed, windBearing;
 bool s_weather_ready;
 Layer* s_forecast_layer;
@@ -68,7 +68,8 @@ int upperright, lowerright, lowerleft, upperleft, step;
 GRect bounds;
 GPoint center;
 
-char date_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];
+/* strings for display */
+char date_buffer[] = "2999-99-99";
 char time_buffer[] = "00:00";
 char temperature_buffer[8];
 char forecast_high_low_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN];

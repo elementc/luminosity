@@ -12,12 +12,11 @@ typedef struct ClaySettings {
   int sunset;
   bool enable_wind_ring;
 } ClaySettings;
+extern ClaySettings settings;
 
-typedef struct WeatherCache{
+typedef struct WeatherCache {
   
 } WeatherCache;
-
-extern ClaySettings settings;
 extern WeatherCache weather_cache;
 
 /* Main */
@@ -33,13 +32,11 @@ extern TextLayer* s_temp_layer;
 extern TextLayer* s_forecast_high_low_layer;
 extern TextLayer* s_wind_speed_layer;
 extern TextLayer* s_wind_bearing_layer;
-extern char forecast_clouds_str[25];
-extern char forecast_precip_type_str[25];
-extern char forecast_precip_intensity_str[25];
-extern char forecast_temp_str[25];
-extern char forecast_wind_intensity_str[25];
-extern char wind_direction[6];
-extern char conditons_string[35];
+extern char forecast_clouds_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+extern char forecast_precip_type_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+extern char forecast_precip_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+extern char forecast_temp_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
+extern char forecast_wind_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern int temperature, tempHigh, tempLow, windSpeed, windBearing;
 extern bool s_weather_ready;
 extern Layer* s_forecast_layer;
