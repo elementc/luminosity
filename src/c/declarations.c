@@ -4,6 +4,10 @@ ClaySettings settings;
 
 WeatherCache weather_cache;
 
+WindowStorage window;
+
+StringTable strings;
+
 /* Main */
 Window* s_main_window;
 

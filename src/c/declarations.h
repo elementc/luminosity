@@ -3,7 +3,7 @@
 
 #define HOURLY_WEATHER_DATA_BUFFER_LEN 72
 
-typedef struct ClaySettings {
+typedef struct {
   bool Analog;
   bool Metric;
   bool Knots;
@@ -14,10 +14,20 @@ typedef struct ClaySettings {
 } ClaySettings;
 extern ClaySettings settings;
 
-typedef struct WeatherCache {
+typedef struct {
   
 } WeatherCache;
 extern WeatherCache weather_cache;
+
+typedef struct {
+
+} WindowStorage;
+extern WindowStorage window;
+
+typedef struct {
+
+} StringTable;
+extern StringTable strings;
 
 /* Main */
 extern Window* s_main_window;

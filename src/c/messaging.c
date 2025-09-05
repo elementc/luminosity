@@ -76,7 +76,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
 
   // If all data is available, use it
   if (temp_tuple) {
-    APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received weather data");
+    APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received weather data");
     int reported_wind_speed = wind_speed_tuple->value->int32;
     windSpeed =
         (int)settings.Knots
