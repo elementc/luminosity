@@ -24,7 +24,7 @@ typedef struct {
 
     /* Text Layers */
     TextLayer* tl_battery;
-    TextLayer* tl_temperature;
+    TextLayer* tl_current_temperature;
     TextLayer* tl_high_low_forecast_temperature;
 } WindowStorage;
 

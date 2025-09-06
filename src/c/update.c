@@ -61,13 +61,13 @@ void prv_update_display() {
     layer_add_child(winrl, text_layer_get_layer(s_wind_speed_layer));
     layer_add_child(winrl, text_layer_get_layer(s_wind_bearing_layer));
     layer_add_child(winrl, s_wind_bearing_icon);
-    layer_remove_from_parent(text_layer_get_layer(window.tl_temperature));
+    layer_remove_from_parent(text_layer_get_layer(window.tl_current_temperature));
     layer_remove_from_parent(text_layer_get_layer(window.tl_high_low_forecast_temperature));
     layer_remove_from_parent(bitmap_layer_get_layer(s_conditions_layer));
     layer_remove_from_parent(
         effect_layer_get_layer(s_conditions_layer_inverter));
   } else {
-    layer_add_child(winrl, text_layer_get_layer(window.tl_temperature));
+    layer_add_child(winrl, text_layer_get_layer(window.tl_current_temperature));
     layer_add_child(winrl, text_layer_get_layer(window.tl_high_low_forecast_temperature));
     layer_add_child(winrl, bitmap_layer_get_layer(s_conditions_layer));
     layer_add_child(winrl, effect_layer_get_layer(s_conditions_layer_inverter));
@@ -83,7 +83,7 @@ void prv_update_display() {
   }
   layer_mark_dirty(s_forecast_layer);
   layer_mark_dirty(s_wind_bearing_icon);
-  layer_mark_dirty(text_layer_get_layer(window.tl_temperature));
+  layer_mark_dirty(text_layer_get_layer(window.tl_current_temperature));
   layer_mark_dirty(text_layer_get_layer(s_wind_speed_layer));
   layer_mark_dirty(text_layer_get_layer(window.tl_high_low_forecast_temperature));
   layer_mark_dirty(text_layer_get_layer(s_wind_bearing_layer));
