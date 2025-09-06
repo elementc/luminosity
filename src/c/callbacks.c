@@ -62,11 +62,11 @@ void health_handler(HealthEventType event, void* context) {
       } else {
         snprintf(steps_str, 12, "%d", steps);
       }
-      text_layer_set_text(s_steps_layer, steps_str);
+      text_layer_set_text(window.tl_steps, steps_str);
 
       APP_LOG(APP_LOG_LEVEL_DEBUG, "steps: %s ", steps_str);
     } else {
-      text_layer_set_text(s_steps_layer, "");
+      text_layer_set_text(window.tl_steps, "");
       APP_LOG(APP_LOG_LEVEL_DEBUG, "steps unavailable");
     }
 

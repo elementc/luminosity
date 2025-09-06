@@ -30,6 +30,13 @@ typedef struct {
     TextLayer* tl_wind_bearing;
     TextLayer* tl_time;
     TextLayer* tl_date;
+    TextLayer* tl_steps;
+
+    /* Bitmap Layers */
+    BitmapLayer* bl_conditions;
+
+    /* Effect Layers */
+    EffectLayer* el_conditions_inverter;
 } WindowStorage;
 
 extern WindowStorage window;
@@ -54,8 +61,6 @@ extern int temperature, tempHigh, tempLow, windSpeed, windBearing;
 extern bool s_weather_ready;
 extern Layer* s_forecast_layer;
 extern Layer* s_wind_bearing_icon;
-extern BitmapLayer* s_conditions_layer;
-extern EffectLayer* s_conditions_layer_inverter;
 extern bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
@@ -63,7 +68,6 @@ extern GFont s_time_font, s_date_font;
 extern Layer *s_analog_layer, *s_24hour_layer;
 
 /* Steps */
-extern TextLayer* s_steps_layer;
 extern GFont s_steps_font;
 extern char steps_str[12];
 

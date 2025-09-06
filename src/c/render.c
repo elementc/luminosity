@@ -66,17 +66,17 @@ void main_window_load(Window* pw__window_to_load) {
   s_condition_icon_bitmap[9] =
       gbitmap_create_with_resource(RESOURCE_ID_COND_PC_NIGHT);
 
-  s_conditions_layer = bitmap_layer_create(conditionRect);
+  window.bl_conditions = bitmap_layer_create(conditionRect);
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  bitmap_layer_get_layer(s_conditions_layer));
+                  bitmap_layer_get_layer(window.bl_conditions));
 
   s_wind_bearing_icon = layer_create(conditionRect);
   layer_set_update_proc(s_wind_bearing_icon, bearing_icon_update_proc);
   layer_add_child(window_get_root_layer(pw__window_to_load), s_wind_bearing_icon);
 
-  s_conditions_layer_inverter = effect_layer_create(conditionRect);
+  window.el_conditions_inverter = effect_layer_create(conditionRect);
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  effect_layer_get_layer(s_conditions_layer_inverter));
+                  effect_layer_get_layer(window.el_conditions_inverter));
 
   // Create the Bluetooth icon GBitmap
   s_bt_icon_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_ICON);
@@ -161,14 +161,14 @@ void main_window_load(Window* pw__window_to_load) {
   text_layer_set_text_alignment(window.tl_battery, GTextAlignmentLeft);
 
   // Steps layer
-  s_steps_layer = text_layer_create(stepRect);
-  text_layer_set_background_color(s_steps_layer, COLOR_CLEAR);
-  text_layer_set_text(s_steps_layer, "");
-  text_layer_set_font(s_steps_layer, s_steps_font);
-  text_layer_set_text_alignment(s_steps_layer, GTextAlignmentRight);
+  window.tl_steps = text_layer_create(stepRect);
+  text_layer_set_background_color(window.tl_steps, COLOR_CLEAR);
+  text_layer_set_text(window.tl_steps, "");
+  text_layer_set_font(window.tl_steps, s_steps_font);
+  text_layer_set_text_alignment(window.tl_steps, GTextAlignmentRight);
 #if defined(PBL_HEALTH)
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  text_layer_get_layer(s_steps_layer));
+                  text_layer_get_layer(window.tl_steps));
 #endif
 
   // Things that are different if you're analog vs digital
@@ -199,7 +199,7 @@ void main_window_unload(Window* _) {
 
   text_layer_destroy(window.tl_time);
   text_layer_destroy(window.tl_date);
-  text_layer_destroy(s_steps_layer);
+  text_layer_destroy(window.tl_steps);
   text_layer_destroy(window.tl_current_temperature);
   text_layer_destroy(window.tl_wind_speed);
   text_layer_destroy(window.tl_high_low_forecast_temperature);
@@ -208,7 +208,7 @@ void main_window_unload(Window* _) {
   layer_destroy(s_analog_layer);
   layer_destroy(s_forecast_layer);
   effect_layer_destroy(s_bt_icon_layer_inverter);
-  effect_layer_destroy(s_conditions_layer_inverter);
+  effect_layer_destroy(window.el_conditions_inverter);
 }
 
 // Draw the 24 hour lines
@@ -353,15 +353,15 @@ void apply_colors_to_layers() {
   text_layer_set_text_color(window.tl_time, COLOR_TIME);
   text_layer_set_text_color(window.tl_date, COLOR_DATE);
   text_layer_set_text_color(window.tl_battery, COLOR_STEPS);
-  text_layer_set_text_color(s_steps_layer, COLOR_STEPS);
+  text_layer_set_text_color(window.tl_steps, COLOR_STEPS);
   layer_mark_dirty(window_get_root_layer(window.w_main));
   layer_mark_dirty(text_layer_get_layer(window.tl_current_temperature));
   layer_mark_dirty(bitmap_layer_get_layer(s_bt_icon_layer));
-  layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
+  layer_mark_dirty(bitmap_layer_get_layer(window.bl_conditions));
 
-  effect_layer_remove_effect(s_conditions_layer_inverter);
+  effect_layer_remove_effect(window.el_conditions_inverter);
   if (settings.Invert_Colors && s_weather_ready) {
-    effect_layer_add_effect(s_conditions_layer_inverter, effect_invert_bw_only,
+    effect_layer_add_effect(window.el_conditions_inverter, effect_invert_bw_only,
                             NULL);
   }
 }

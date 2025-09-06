@@ -63,23 +63,23 @@ void prv_update_display() {
     layer_add_child(winrl, s_wind_bearing_icon);
     layer_remove_from_parent(text_layer_get_layer(window.tl_current_temperature));
     layer_remove_from_parent(text_layer_get_layer(window.tl_high_low_forecast_temperature));
-    layer_remove_from_parent(bitmap_layer_get_layer(s_conditions_layer));
+    layer_remove_from_parent(bitmap_layer_get_layer(window.bl_conditions));
     layer_remove_from_parent(
-        effect_layer_get_layer(s_conditions_layer_inverter));
+        effect_layer_get_layer(window.el_conditions_inverter));
   } else {
     layer_add_child(winrl, text_layer_get_layer(window.tl_current_temperature));
     layer_add_child(winrl, text_layer_get_layer(window.tl_high_low_forecast_temperature));
-    layer_add_child(winrl, bitmap_layer_get_layer(s_conditions_layer));
-    layer_add_child(winrl, effect_layer_get_layer(s_conditions_layer_inverter));
+    layer_add_child(winrl, bitmap_layer_get_layer(window.bl_conditions));
+    layer_add_child(winrl, effect_layer_get_layer(window.el_conditions_inverter));
     layer_remove_from_parent(text_layer_get_layer(window.tl_wind_speed));
     layer_remove_from_parent(text_layer_get_layer(window.tl_wind_bearing));
     layer_remove_from_parent(s_wind_bearing_icon);
   }
 
   if (settings.Invert_Colors && s_weather_ready) {
-    bitmap_layer_set_background_color(s_conditions_layer, COLOR_TIME);
+    bitmap_layer_set_background_color(window.bl_conditions, COLOR_TIME);
   } else {
-    bitmap_layer_set_background_color(s_conditions_layer, COLOR_CLEAR);
+    bitmap_layer_set_background_color(window.bl_conditions, COLOR_CLEAR);
   }
   layer_mark_dirty(s_forecast_layer);
   layer_mark_dirty(s_wind_bearing_icon);
@@ -87,7 +87,7 @@ void prv_update_display() {
   layer_mark_dirty(text_layer_get_layer(window.tl_wind_speed));
   layer_mark_dirty(text_layer_get_layer(window.tl_high_low_forecast_temperature));
   layer_mark_dirty(text_layer_get_layer(window.tl_wind_bearing));
-  layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
+  layer_mark_dirty(bitmap_layer_get_layer(window.bl_conditions));
   APP_LOG(APP_LOG_LEVEL_INFO, "Updated display.");
   update_time_no_update_weather();
 }

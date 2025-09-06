@@ -112,13 +112,13 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     char* conditions = conditions_tuple->value->cstring;
     for (int i = 0; i < 10; i++) {
       if (strcmp(conditions, condition_icons[i]) == 0) {
-        bitmap_layer_set_bitmap(s_conditions_layer, s_condition_icon_bitmap[i]);
-        effect_layer_remove_effect(s_conditions_layer_inverter);
+        bitmap_layer_set_bitmap(window.bl_conditions, s_condition_icon_bitmap[i]);
+        effect_layer_remove_effect(window.el_conditions_inverter);
         if (settings.Invert_Colors) {
-          effect_layer_add_effect(s_conditions_layer_inverter,
+          effect_layer_add_effect(window.el_conditions_inverter,
                                   effect_invert_bw_only, NULL);
         } else {
-          effect_layer_remove_effect(s_conditions_layer_inverter);
+          effect_layer_remove_effect(window.el_conditions_inverter);
         }
       }
     }

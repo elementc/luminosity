@@ -25,8 +25,6 @@ int temperature, tempHigh, tempLow, windSpeed, windBearing;
 bool s_weather_ready;
 Layer* s_forecast_layer;
 Layer* s_wind_bearing_icon;
-BitmapLayer* s_conditions_layer;
-EffectLayer* s_conditions_layer_inverter;
 bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
@@ -34,7 +32,6 @@ GFont s_time_font, s_date_font;
 Layer *s_analog_layer, *s_24hour_layer;
 
 /* Steps */
-TextLayer* s_steps_layer;
 GFont s_steps_font;
 char steps_str[12];
 
