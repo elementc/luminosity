@@ -43,6 +43,8 @@ typedef struct {
     /* Layers for rendering */
     Layer* l_analog;
     Layer* l_24hour;
+    Layer* l_forecast_ring;
+    Layer* l_wind_bearing_compass;
 } WindowStorage;
 
 extern WindowStorage window;
@@ -65,9 +67,7 @@ extern char forecast_temp_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern char forecast_wind_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern int temperature, tempHigh, tempLow, windSpeed, windBearing;
 extern bool s_weather_ready;
-extern Layer* s_forecast_layer;
-extern Layer* s_wind_bearing_icon;
-extern bool s_forecast_layer_displaying_wind;
+extern bool forecast_ring_in_wind_mode;
 
 /* Time and date */
 extern GFont s_time_font, s_date_font;

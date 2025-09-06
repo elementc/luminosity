@@ -23,9 +23,7 @@ char forecast_wind_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 
 int temperature, tempHigh, tempLow, windSpeed, windBearing;
 bool s_weather_ready;
-Layer* s_forecast_layer;
-Layer* s_wind_bearing_icon;
-bool s_forecast_layer_displaying_wind;
+bool forecast_ring_in_wind_mode;
 
 /* Time and date */
 GFont s_time_font, s_date_font;

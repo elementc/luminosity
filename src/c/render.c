@@ -70,9 +70,9 @@ void main_window_load(Window* pw__window_to_load) {
   layer_add_child(window_get_root_layer(pw__window_to_load),
                   bitmap_layer_get_layer(window.bl_conditions));
 
-  s_wind_bearing_icon = layer_create(conditionRect);
-  layer_set_update_proc(s_wind_bearing_icon, bearing_icon_update_proc);
-  layer_add_child(window_get_root_layer(pw__window_to_load), s_wind_bearing_icon);
+  window.l_wind_bearing_compass = layer_create(conditionRect);
+  layer_set_update_proc(window.l_wind_bearing_compass, bearing_icon_update_proc);
+  layer_add_child(window_get_root_layer(pw__window_to_load), window.l_wind_bearing_compass);
 
   window.el_conditions_inverter = effect_layer_create(conditionRect);
   layer_add_child(window_get_root_layer(pw__window_to_load),
@@ -93,9 +93,9 @@ void main_window_load(Window* pw__window_to_load) {
                   effect_layer_get_layer(window.el_bt_inverter));
 
   // Weather forecast layer
-  s_forecast_layer = layer_create(window_bounds);
-  layer_set_update_proc(s_forecast_layer, forecast_update_proc);
-  layer_add_child(window_get_root_layer(pw__window_to_load), s_forecast_layer);
+  window.l_forecast_ring = layer_create(window_bounds);
+  layer_set_update_proc(window.l_forecast_ring, forecast_update_proc);
+  layer_add_child(window_get_root_layer(pw__window_to_load), window.l_forecast_ring);
 
   // Create 24 hour layer
   window.l_24hour = layer_create(window_bounds);
@@ -206,7 +206,7 @@ void main_window_unload(Window* _) {
   text_layer_destroy(window.tl_wind_bearing);
   text_layer_destroy(window.tl_battery);
   layer_destroy(window.l_analog);
-  layer_destroy(s_forecast_layer);
+  layer_destroy(window.l_forecast_ring);
   effect_layer_destroy(window.el_bt_inverter);
   effect_layer_destroy(window.el_conditions_inverter);
 }

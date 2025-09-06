@@ -80,7 +80,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
       graphics_fill_rect(ctx, r1, 0, GCornerNone);
 
       // inner (precip) ring
-      if (s_forecast_layer_displaying_wind) {
+      if (forecast_ring_in_wind_mode) {
         // write method for displaying wind data
         if (i >= s_sunset || i < s_sunrise) {
           graphics_context_set_fill_color(ctx, COLOR_WIND_NIGHT);
@@ -205,7 +205,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
       graphics_draw_arc(ctx, r1, GOvalScaleModeFitCircle, p1, p2);
 
       // inner ring
-      if (s_forecast_layer_displaying_wind) {
+      if (forecast_ring_in_wind_mode) {
         // write method for displaying wind data
         if (i >= s_sunset || i < s_sunrise) {
           graphics_context_set_stroke_color(ctx, COLOR_WIND_NIGHT);

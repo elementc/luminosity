@@ -53,7 +53,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     settings.sunrise = s_sunrise;
     settings.sunset = s_sunset;
     s_space_ready = true;
-    layer_mark_dirty(s_forecast_layer);
+    layer_mark_dirty(window.l_forecast_ring);
     prv_save_settings();
   }
 

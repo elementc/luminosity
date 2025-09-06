@@ -13,7 +13,7 @@ void init() {
 
   s_space_ready = true;
   s_weather_ready = false;
-  s_forecast_layer_displaying_wind = false;
+  forecast_ring_in_wind_mode = false;
 
   window.w_main = window_create();
   window_set_window_handlers(

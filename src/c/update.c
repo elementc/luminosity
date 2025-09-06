@@ -57,10 +57,10 @@ void prv_update_display() {
     text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_DIGITAL);
   }
 
-  if (s_forecast_layer_displaying_wind) {
+  if (forecast_ring_in_wind_mode) {
     layer_add_child(winrl, text_layer_get_layer(window.tl_wind_speed));
     layer_add_child(winrl, text_layer_get_layer(window.tl_wind_bearing));
-    layer_add_child(winrl, s_wind_bearing_icon);
+    layer_add_child(winrl, window.l_wind_bearing_compass);
     layer_remove_from_parent(text_layer_get_layer(window.tl_current_temperature));
     layer_remove_from_parent(text_layer_get_layer(window.tl_high_low_forecast_temperature));
     layer_remove_from_parent(bitmap_layer_get_layer(window.bl_conditions));
@@ -73,7 +73,7 @@ void prv_update_display() {
     layer_add_child(winrl, effect_layer_get_layer(window.el_conditions_inverter));
     layer_remove_from_parent(text_layer_get_layer(window.tl_wind_speed));
     layer_remove_from_parent(text_layer_get_layer(window.tl_wind_bearing));
-    layer_remove_from_parent(s_wind_bearing_icon);
+    layer_remove_from_parent(window.l_wind_bearing_compass);
   }
 
   if (settings.Invert_Colors && s_weather_ready) {
@@ -81,8 +81,8 @@ void prv_update_display() {
   } else {
     bitmap_layer_set_background_color(window.bl_conditions, COLOR_CLEAR);
   }
-  layer_mark_dirty(s_forecast_layer);
-  layer_mark_dirty(s_wind_bearing_icon);
+  layer_mark_dirty(window.l_forecast_ring);
+  layer_mark_dirty(window.l_wind_bearing_compass);
   layer_mark_dirty(text_layer_get_layer(window.tl_current_temperature));
   layer_mark_dirty(text_layer_get_layer(window.tl_wind_speed));
   layer_mark_dirty(text_layer_get_layer(window.tl_high_low_forecast_temperature));

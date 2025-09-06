@@ -131,7 +131,7 @@ void accel_tap_handler(AccelAxisType axis, int32_t direction) {
     }
 
     // A tap event occured
-    s_forecast_layer_displaying_wind = !s_forecast_layer_displaying_wind;
+    forecast_ring_in_wind_mode = !forecast_ring_in_wind_mode;
     prv_update_display();
   }
 }
