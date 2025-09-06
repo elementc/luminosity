@@ -13,14 +13,14 @@ void tick_handler(struct tm* tick_time, TimeUnits units_changed) {
 //  Triggered when bluetooth connects/disconnects
 void bluetooth_callback(bool connected) {
   // Show icon if disconnected
-  layer_set_hidden(bitmap_layer_get_layer(s_bt_icon_layer), connected);
+  layer_set_hidden(bitmap_layer_get_layer(window.bl_bt), connected);
 
   if (!connected) {
     vibes_double_pulse();
   }
-  effect_layer_remove_effect(s_bt_icon_layer_inverter);
+  effect_layer_remove_effect(window.el_bt_inverter);
   if (!connected && settings.Invert_Colors) {
-    effect_layer_add_effect(s_bt_icon_layer_inverter, effect_invert_bw_only,
+    effect_layer_add_effect(window.el_bt_inverter, effect_invert_bw_only,
                             NULL);
   }
 }

@@ -36,8 +36,6 @@ GFont s_steps_font;
 char steps_str[12];
 
 /* Bluetooth */
-BitmapLayer* s_bt_icon_layer;
-EffectLayer* s_bt_icon_layer_inverter;
 GBitmap* s_bt_icon_bitmap;
 
 /* Space */

@@ -34,9 +34,11 @@ typedef struct {
 
     /* Bitmap Layers */
     BitmapLayer* bl_conditions;
+    BitmapLayer* bl_bt;
 
     /* Effect Layers */
     EffectLayer* el_conditions_inverter;
+    EffectLayer* el_bt_inverter;
 } WindowStorage;
 
 extern WindowStorage window;
@@ -72,9 +74,7 @@ extern GFont s_steps_font;
 extern char steps_str[12];
 
 /* Bluetooth */
-extern BitmapLayer* s_bt_icon_layer;
 extern GBitmap* s_bt_icon_bitmap;
-extern EffectLayer* s_bt_icon_layer_inverter;
 
 /* Space */
 extern int s_sunset, s_sunrise;

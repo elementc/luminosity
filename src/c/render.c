@@ -82,15 +82,15 @@ void main_window_load(Window* pw__window_to_load) {
   s_bt_icon_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_ICON);
 
   // Create the BitmapLayer to display the GBitmap
-  s_bt_icon_layer = bitmap_layer_create(btRect);
-  bitmap_layer_set_background_color(s_bt_icon_layer, COLOR_CLEAR);
-  bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
+  window.bl_bt = bitmap_layer_create(btRect);
+  bitmap_layer_set_background_color(window.bl_bt, COLOR_CLEAR);
+  bitmap_layer_set_bitmap(window.bl_bt, s_bt_icon_bitmap);
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  bitmap_layer_get_layer(s_bt_icon_layer));
+                  bitmap_layer_get_layer(window.bl_bt));
 
-  s_bt_icon_layer_inverter = effect_layer_create(btRect);
+  window.el_bt_inverter = effect_layer_create(btRect);
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  effect_layer_get_layer(s_bt_icon_layer_inverter));
+                  effect_layer_get_layer(window.el_bt_inverter));
 
   // Weather forecast layer
   s_forecast_layer = layer_create(window_bounds);
@@ -195,7 +195,7 @@ void main_window_load(Window* pw__window_to_load) {
 void main_window_unload(Window* _) {
 
   gbitmap_destroy(s_bt_icon_bitmap);
-  bitmap_layer_destroy(s_bt_icon_layer);
+  bitmap_layer_destroy(window.bl_bt);
 
   text_layer_destroy(window.tl_time);
   text_layer_destroy(window.tl_date);
@@ -207,7 +207,7 @@ void main_window_unload(Window* _) {
   text_layer_destroy(window.tl_battery);
   layer_destroy(s_analog_layer);
   layer_destroy(s_forecast_layer);
-  effect_layer_destroy(s_bt_icon_layer_inverter);
+  effect_layer_destroy(window.el_bt_inverter);
   effect_layer_destroy(window.el_conditions_inverter);
 }
 
@@ -356,7 +356,7 @@ void apply_colors_to_layers() {
   text_layer_set_text_color(window.tl_steps, COLOR_STEPS);
   layer_mark_dirty(window_get_root_layer(window.w_main));
   layer_mark_dirty(text_layer_get_layer(window.tl_current_temperature));
-  layer_mark_dirty(bitmap_layer_get_layer(s_bt_icon_layer));
+  layer_mark_dirty(bitmap_layer_get_layer(window.bl_bt));
   layer_mark_dirty(bitmap_layer_get_layer(window.bl_conditions));
 
   effect_layer_remove_effect(window.el_conditions_inverter);
