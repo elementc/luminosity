@@ -38,7 +38,7 @@ void battery_callback(BatteryChargeState state) {
            '%');
   APP_LOG(APP_LOG_LEVEL_DEBUG, "battery updated");
   APP_LOG(APP_LOG_LEVEL_DEBUG, "%s", s_battery_string);
-  text_layer_set_text(s_battery_text_layer, s_battery_string);
+  text_layer_set_text(window.tl_battery, s_battery_string);
 }
 
 void health_handler(HealthEventType event, void* context) {

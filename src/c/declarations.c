@@ -1,4 +1,5 @@
 #include "src/c/luminosity.h"
+#include "src/c/declarations.h"
 
 ClaySettings settings;
 
@@ -9,7 +10,6 @@ WindowStorage window;
 StringTable strings;
 
 /* Battery */
-TextLayer* s_battery_text_layer;
 char s_battery_string[6];
 int s_battery_level;
 

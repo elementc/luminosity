@@ -21,7 +21,7 @@ extern WeatherCache weather_cache;
 
 typedef struct {
     Window* w_main;
-
+    TextLayer* tl_battery;
 } WindowStorage;
 extern WindowStorage window;
 
@@ -32,7 +32,6 @@ extern StringTable strings;
 
 
 /* Battery */
-extern TextLayer* s_battery_text_layer;
 extern char s_battery_string[6];
 extern int s_battery_level;
 
