@@ -14,7 +14,7 @@ bool update_buffers() {
   text_layer_set_text(window.tl_time, time_buffer);
 
   if (settings.Analog)
-    layer_mark_dirty(s_analog_layer);
+    layer_mark_dirty(window.l_analog);
 
   // Show the date
 
@@ -46,13 +46,13 @@ void prv_update_display() {
   if (settings.Analog) {
     layer_remove_from_parent(text_layer_get_layer(window.tl_time));
     layer_remove_from_parent(text_layer_get_layer(window.tl_battery));
-    layer_add_child(winrl, s_analog_layer);
+    layer_add_child(winrl, window.l_analog);
     layer_set_frame(text_layer_get_layer(window.tl_date), DATE_LAYER_ANALOG);
     text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_ANALOG);
   } else {
     layer_add_child(winrl, text_layer_get_layer(window.tl_time));
     layer_add_child(winrl, text_layer_get_layer(window.tl_battery));
-    layer_remove_from_parent(s_analog_layer);
+    layer_remove_from_parent(window.l_analog);
     layer_set_frame(text_layer_get_layer(window.tl_date), DATE_LAYER_DIGITAL);
     text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_DIGITAL);
   }

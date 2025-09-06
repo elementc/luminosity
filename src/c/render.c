@@ -40,9 +40,9 @@ void main_window_load(Window* pw__window_to_load) {
   s_steps_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
   // Analog hands layer
-  s_analog_layer = layer_create(analogRect);
-  calculate_perimeter(s_analog_layer);
-  layer_set_update_proc(s_analog_layer, analog_update_proc);
+  window.l_analog = layer_create(analogRect);
+  calculate_perimeter(window.l_analog);
+  layer_set_update_proc(window.l_analog, analog_update_proc);
 
   // Conditions layer
   s_condition_icon_bitmap[0] =
@@ -98,9 +98,9 @@ void main_window_load(Window* pw__window_to_load) {
   layer_add_child(window_get_root_layer(pw__window_to_load), s_forecast_layer);
 
   // Create 24 hour layer
-  s_24hour_layer = layer_create(window_bounds);
-  layer_set_update_proc(s_24hour_layer, label_update_proc);
-  layer_add_child(window_get_root_layer(pw__window_to_load), s_24hour_layer);
+  window.l_24hour = layer_create(window_bounds);
+  layer_set_update_proc(window.l_24hour, label_update_proc);
+  layer_add_child(window_get_root_layer(pw__window_to_load), window.l_24hour);
 
   // Temperature layer
   window.tl_current_temperature = text_layer_create(tempRect);
@@ -179,7 +179,7 @@ void main_window_load(Window* pw__window_to_load) {
     layer_add_child(window_get_root_layer(pw__window_to_load),
                     text_layer_get_layer(window.tl_battery));
   if (settings.Analog)
-    layer_add_child(window_get_root_layer(pw__window_to_load), s_analog_layer);
+    layer_add_child(window_get_root_layer(pw__window_to_load), window.l_analog);
 
   // Initialize the display
   apply_colors_to_layers();
@@ -205,7 +205,7 @@ void main_window_unload(Window* _) {
   text_layer_destroy(window.tl_high_low_forecast_temperature);
   text_layer_destroy(window.tl_wind_bearing);
   text_layer_destroy(window.tl_battery);
-  layer_destroy(s_analog_layer);
+  layer_destroy(window.l_analog);
   layer_destroy(s_forecast_layer);
   effect_layer_destroy(window.el_bt_inverter);
   effect_layer_destroy(window.el_conditions_inverter);

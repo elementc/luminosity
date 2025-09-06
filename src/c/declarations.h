@@ -39,6 +39,10 @@ typedef struct {
     /* Effect Layers */
     EffectLayer* el_conditions_inverter;
     EffectLayer* el_bt_inverter;
+
+    /* Layers for rendering */
+    Layer* l_analog;
+    Layer* l_24hour;
 } WindowStorage;
 
 extern WindowStorage window;
@@ -67,7 +71,6 @@ extern bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
 extern GFont s_time_font, s_date_font;
-extern Layer *s_analog_layer, *s_24hour_layer;
 
 /* Steps */
 extern GFont s_steps_font;

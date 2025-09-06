@@ -29,7 +29,6 @@ bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
 GFont s_time_font, s_date_font;
-Layer *s_analog_layer, *s_24hour_layer;
 
 /* Steps */
 GFont s_steps_font;
