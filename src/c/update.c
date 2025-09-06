@@ -38,7 +38,7 @@ void update_time_no_update_weather() { update_buffers(); }
 
 void prv_update_display() {
   // hide and display things according to settings
-  Layer* winrl = window_get_root_layer(s_main_window);
+  Layer* winrl = window_get_root_layer(window.s_main_window);
   GRect window_bounds = layer_get_unobstructed_bounds(winrl);
   int w = window_bounds.size.w;
   int h = window_bounds.size.h;

@@ -15,11 +15,11 @@ void init() {
   s_weather_ready = false;
   s_forecast_layer_displaying_wind = false;
 
-  s_main_window = window_create();
+  window.s_main_window = window_create();
   window_set_window_handlers(
-      s_main_window,
+      window.s_main_window,
       (WindowHandlers){.load = main_window_load, .unload = main_window_unload});
-  window_stack_push(s_main_window, true);
+  window_stack_push(window.s_main_window, true);
 
   // Register with Event Services
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
@@ -51,7 +51,7 @@ void init() {
 }
 
 void deinit() {
-  window_destroy(s_main_window);
+  window_destroy(window.s_main_window);
   accel_tap_service_unsubscribe();
 }
 

@@ -8,9 +8,6 @@ WindowStorage window;
 
 StringTable strings;
 
-/* Main */
-Window* s_main_window;
-
 /* Battery */
 TextLayer* s_battery_text_layer;
 char s_battery_string[6];
