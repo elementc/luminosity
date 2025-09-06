@@ -103,13 +103,13 @@ void main_window_load(Window* pw__window_to_load) {
   layer_add_child(window_get_root_layer(pw__window_to_load), s_24hour_layer);
 
   // Temperature layer
-  s_temp_layer = text_layer_create(tempRect);
-  text_layer_set_background_color(s_temp_layer, COLOR_CLEAR);
-  text_layer_set_text(s_temp_layer, "");
-  text_layer_set_font(s_temp_layer, s_date_font);
-  text_layer_set_text_alignment(s_temp_layer, GTextAlignmentRight);
+  window.tl_temperature = text_layer_create(tempRect);
+  text_layer_set_background_color(window.tl_temperature, COLOR_CLEAR);
+  text_layer_set_text(window.tl_temperature, "");
+  text_layer_set_font(window.tl_temperature, s_date_font);
+  text_layer_set_text_alignment(window.tl_temperature, GTextAlignmentRight);
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  text_layer_get_layer(s_temp_layer));
+                  text_layer_get_layer(window.tl_temperature));
 
   s_wind_speed_layer = text_layer_create(tempRect);
   text_layer_set_background_color(s_wind_speed_layer, COLOR_CLEAR);
@@ -200,7 +200,7 @@ void main_window_unload(Window* _) {
   text_layer_destroy(s_time_layer);
   text_layer_destroy(s_date_layer);
   text_layer_destroy(s_steps_layer);
-  text_layer_destroy(s_temp_layer);
+  text_layer_destroy(window.tl_temperature);
   text_layer_destroy(s_wind_speed_layer);
   text_layer_destroy(s_forecast_high_low_layer);
   text_layer_destroy(s_wind_bearing_layer);
@@ -346,7 +346,7 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
 // set colors to layers and mark all dirty
 void apply_colors_to_layers() {
   window_set_background_color(window.w_main, COLOR_WINDOW);
-  text_layer_set_text_color(s_temp_layer, COLOR_TEMP);
+  text_layer_set_text_color(window.tl_temperature, COLOR_TEMP);
   text_layer_set_text_color(s_wind_speed_layer, COLOR_TEMP);
   text_layer_set_text_color(s_forecast_high_low_layer, COLOR_TEMP);
   text_layer_set_text_color(s_wind_bearing_layer, COLOR_TEMP);
@@ -355,7 +355,7 @@ void apply_colors_to_layers() {
   text_layer_set_text_color(window.tl_battery, COLOR_STEPS);
   text_layer_set_text_color(s_steps_layer, COLOR_STEPS);
   layer_mark_dirty(window_get_root_layer(window.w_main));
-  layer_mark_dirty(text_layer_get_layer(s_temp_layer));
+  layer_mark_dirty(text_layer_get_layer(window.tl_temperature));
   layer_mark_dirty(bitmap_layer_get_layer(s_bt_icon_layer));
   layer_mark_dirty(bitmap_layer_get_layer(s_conditions_layer));
 
