@@ -11,7 +11,7 @@ bool update_buffers() {
   } else {
     strftime(time_buffer, sizeof(time_buffer), "%I:%M", tick_time);
   }
-  text_layer_set_text(s_time_layer, time_buffer);
+  text_layer_set_text(window.tl_time, time_buffer);
 
   if (settings.Analog)
     layer_mark_dirty(s_analog_layer);
@@ -22,7 +22,7 @@ bool update_buffers() {
     strftime(date_buffer, sizeof(date_buffer), "%a\n%b %e", tick_time);
   else
     strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
-  text_layer_set_text(s_date_layer, date_buffer);
+  text_layer_set_text(window.tl_date, date_buffer);
   APP_LOG(APP_LOG_LEVEL_INFO, "Updated time.");
   return tick_time->tm_min % 30 == 0;
 }
@@ -44,17 +44,17 @@ void prv_update_display() {
   int h = window_bounds.size.h;
 
   if (settings.Analog) {
-    layer_remove_from_parent(text_layer_get_layer(s_time_layer));
+    layer_remove_from_parent(text_layer_get_layer(window.tl_time));
     layer_remove_from_parent(text_layer_get_layer(window.tl_battery));
     layer_add_child(winrl, s_analog_layer);
-    layer_set_frame(text_layer_get_layer(s_date_layer), DATE_LAYER_ANALOG);
-    text_layer_set_text_alignment(s_date_layer, DATE_ALIGN_ANALOG);
+    layer_set_frame(text_layer_get_layer(window.tl_date), DATE_LAYER_ANALOG);
+    text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_ANALOG);
   } else {
-    layer_add_child(winrl, text_layer_get_layer(s_time_layer));
+    layer_add_child(winrl, text_layer_get_layer(window.tl_time));
     layer_add_child(winrl, text_layer_get_layer(window.tl_battery));
     layer_remove_from_parent(s_analog_layer);
-    layer_set_frame(text_layer_get_layer(s_date_layer), DATE_LAYER_DIGITAL);
-    text_layer_set_text_alignment(s_date_layer, DATE_ALIGN_DIGITAL);
+    layer_set_frame(text_layer_get_layer(window.tl_date), DATE_LAYER_DIGITAL);
+    text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_DIGITAL);
   }
 
   if (s_forecast_layer_displaying_wind) {

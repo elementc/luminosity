@@ -28,6 +28,8 @@ typedef struct {
     TextLayer* tl_high_low_forecast_temperature;
     TextLayer* tl_wind_speed;
     TextLayer* tl_wind_bearing;
+    TextLayer* tl_time;
+    TextLayer* tl_date;
 } WindowStorage;
 
 extern WindowStorage window;
@@ -57,7 +59,6 @@ extern EffectLayer* s_conditions_layer_inverter;
 extern bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
-extern TextLayer *s_time_layer, *s_date_layer;
 extern GFont s_time_font, s_date_font;
 extern Layer *s_analog_layer, *s_24hour_layer;
 

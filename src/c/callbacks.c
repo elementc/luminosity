@@ -82,7 +82,7 @@ void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,
   GRect full_bounds = layer_get_bounds(window_get_root_layer(window.w_main));
   if (!grect_equal(&full_bounds, &final_unobstructed_screen_area)) {
     // Screen is about to become obstructed, hide the date
-    layer_set_hidden(text_layer_get_layer(s_date_layer), true);
+    layer_set_hidden(text_layer_get_layer(window.tl_date), true);
   }
 }
 
@@ -94,7 +94,7 @@ void prv_unobstructed_did_change(void* context) {
       layer_get_unobstructed_bounds(window_get_root_layer(window.w_main));
   if (grect_equal(&full_bounds, &bounds)) {
     // Screen is no longer obstructed, show the date
-    layer_set_hidden(text_layer_get_layer(s_date_layer), false);
+    layer_set_hidden(text_layer_get_layer(window.tl_date), false);
   }
   prv_update_display();
 }

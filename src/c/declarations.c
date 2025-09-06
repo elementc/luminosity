@@ -30,7 +30,6 @@ EffectLayer* s_conditions_layer_inverter;
 bool s_forecast_layer_displaying_wind;
 
 /* Time and date */
-TextLayer *s_time_layer, *s_date_layer;
 GFont s_time_font, s_date_font;
 Layer *s_analog_layer, *s_24hour_layer;
 

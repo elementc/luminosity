@@ -138,20 +138,20 @@ void main_window_load(Window* pw__window_to_load) {
                   text_layer_get_layer(window.tl_wind_bearing));
 
   // Create time TextLayer
-  s_time_layer = text_layer_create(timeRect);
-  text_layer_set_background_color(s_time_layer, COLOR_CLEAR);
-  text_layer_set_text(s_time_layer, "--:--");
-  text_layer_set_font(s_time_layer, s_time_font);
-  text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
+  window.tl_time = text_layer_create(timeRect);
+  text_layer_set_background_color(window.tl_time, COLOR_CLEAR);
+  text_layer_set_text(window.tl_time, "--:--");
+  text_layer_set_font(window.tl_time, s_time_font);
+  text_layer_set_text_alignment(window.tl_time, GTextAlignmentCenter);
 
   // Create date TextLayer
-  s_date_layer = text_layer_create(dateRect);
-  text_layer_set_background_color(s_date_layer, COLOR_CLEAR);
-  text_layer_set_text_alignment(s_date_layer, dateAlign);
-  text_layer_set_text(s_date_layer, "");
-  text_layer_set_font(s_date_layer, s_date_font);
+  window.tl_date = text_layer_create(dateRect);
+  text_layer_set_background_color(window.tl_date, COLOR_CLEAR);
+  text_layer_set_text_alignment(window.tl_date, dateAlign);
+  text_layer_set_text(window.tl_date, "");
+  text_layer_set_font(window.tl_date, s_date_font);
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  text_layer_get_layer(s_date_layer));
+                  text_layer_get_layer(window.tl_date));
 
   // Create battery meter Layer
   window.tl_battery = text_layer_create(batteryRect);
@@ -174,7 +174,7 @@ void main_window_load(Window* pw__window_to_load) {
   // Things that are different if you're analog vs digital
   if (!settings.Analog)
     layer_add_child(window_get_root_layer(pw__window_to_load),
-                    text_layer_get_layer(s_time_layer));
+                    text_layer_get_layer(window.tl_time));
   if (!settings.Analog)
     layer_add_child(window_get_root_layer(pw__window_to_load),
                     text_layer_get_layer(window.tl_battery));
@@ -197,8 +197,8 @@ void main_window_unload(Window* _) {
   gbitmap_destroy(s_bt_icon_bitmap);
   bitmap_layer_destroy(s_bt_icon_layer);
 
-  text_layer_destroy(s_time_layer);
-  text_layer_destroy(s_date_layer);
+  text_layer_destroy(window.tl_time);
+  text_layer_destroy(window.tl_date);
   text_layer_destroy(s_steps_layer);
   text_layer_destroy(window.tl_current_temperature);
   text_layer_destroy(window.tl_wind_speed);
@@ -350,8 +350,8 @@ void apply_colors_to_layers() {
   text_layer_set_text_color(window.tl_wind_speed, COLOR_TEMP);
   text_layer_set_text_color(window.tl_high_low_forecast_temperature, COLOR_TEMP);
   text_layer_set_text_color(window.tl_wind_bearing, COLOR_TEMP);
-  text_layer_set_text_color(s_time_layer, COLOR_TIME);
-  text_layer_set_text_color(s_date_layer, COLOR_DATE);
+  text_layer_set_text_color(window.tl_time, COLOR_TIME);
+  text_layer_set_text_color(window.tl_date, COLOR_DATE);
   text_layer_set_text_color(window.tl_battery, COLOR_STEPS);
   text_layer_set_text_color(s_steps_layer, COLOR_STEPS);
   layer_mark_dirty(window_get_root_layer(window.w_main));
