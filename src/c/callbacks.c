@@ -79,7 +79,7 @@ void health_handler(HealthEventType event, void* context) {
 void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,
                                   void* context) {
   // Get the full size of the screen
-  GRect full_bounds = layer_get_bounds(window_get_root_layer(window.s_main_window));
+  GRect full_bounds = layer_get_bounds(window_get_root_layer(window.w_main));
   if (!grect_equal(&full_bounds, &final_unobstructed_screen_area)) {
     // Screen is about to become obstructed, hide the date
     layer_set_hidden(text_layer_get_layer(s_date_layer), true);
@@ -88,10 +88,10 @@ void prv_unobstructed_will_change(GRect final_unobstructed_screen_area,
 
 void prv_unobstructed_did_change(void* context) {
   // Get the full size of the screen
-  GRect full_bounds = layer_get_bounds(window_get_root_layer(window.s_main_window));
+  GRect full_bounds = layer_get_bounds(window_get_root_layer(window.w_main));
   // Get the total available screen real-estate
   GRect bounds =
-      layer_get_unobstructed_bounds(window_get_root_layer(window.s_main_window));
+      layer_get_unobstructed_bounds(window_get_root_layer(window.w_main));
   if (grect_equal(&full_bounds, &bounds)) {
     // Screen is no longer obstructed, show the date
     layer_set_hidden(text_layer_get_layer(s_date_layer), false);

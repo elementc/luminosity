@@ -20,7 +20,7 @@ typedef struct {
 extern WeatherCache weather_cache;
 
 typedef struct {
-    Window* s_main_window;
+    Window* w_main;
 
 } WindowStorage;
 extern WindowStorage window;
