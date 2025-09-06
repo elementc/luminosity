@@ -105,7 +105,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     snprintf(forecast_wind_intensity_str, sizeof(forecast_wind_intensity_str),
              "%s", forecast_wind_intensity_tuple->value->cstring);
     text_layer_set_text(window.tl_temperature, temperature_buffer);
-    text_layer_set_text(s_forecast_high_low_layer, forecast_high_low_buffer);
+    text_layer_set_text(window.tl_high_low_forecast_temperature, forecast_high_low_buffer);
     text_layer_set_text(s_wind_speed_layer, wind_speed_buffer);
     text_layer_set_text(s_wind_bearing_layer, wind_bearing_buffer);
 
