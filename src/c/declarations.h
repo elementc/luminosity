@@ -20,6 +20,11 @@ typedef struct {
 extern WeatherCache weather_cache;
 
 typedef struct {
+    /* Geometry */
+    GRect r_bounds; /* This may only be used by the analog layer, actually, in the calculate_perimeter function, and therefore deletable if we delete that feature. */
+    GPoint p_center;
+
+    /* Window */
     Window* w_main;
 
     /* Text Layers */
@@ -88,8 +93,6 @@ extern char* condition_icons[];
 extern GBitmap* s_condition_icon_bitmap[10];
 
 extern int upperright, lowerright, lowerleft, upperleft, step;
-extern GRect bounds;
-extern GPoint center;
 
 // Persistent storage key
 #define SETTINGS_KEY 1

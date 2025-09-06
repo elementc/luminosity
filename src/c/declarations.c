@@ -53,8 +53,6 @@ char* condition_icons[] = {"clear-day",
 GBitmap* s_condition_icon_bitmap[10];
 
 int upperright, lowerright, lowerleft, upperleft, step;
-GRect bounds;
-GPoint center;
 
 /* strings for display */
 char date_buffer[] = "2999-99-99";

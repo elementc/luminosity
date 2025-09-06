@@ -262,11 +262,11 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
   time_t temp = time(NULL);
   struct tm* tick_time = localtime(&temp);
 
-  int minArmStart = (center.x - 20) * (100 - s_battery_level) / 100;
-  int hourArmStart = (center.x - 40) * (100 - s_battery_level) / 100;
+  int minArmStart = (window.p_center.x - 20) * (100 - s_battery_level) / 100;
+  int hourArmStart = (window.p_center.x - 40) * (100 - s_battery_level) / 100;
 
-  int minArmEnd = center.x - 20;  // - minArmStart;
-  int hourArmEnd = center.x - 40; // - minArmStart;
+  int minArmEnd = window.p_center.x - 20;  // - minArmStart;
+  int hourArmEnd = window.p_center.x - 40; // - minArmStart;
 
   int hourHand = (tick_time->tm_hour * 60 + tick_time->tm_min) /
                  2; // 0 to 1440 = 0h to 24h
@@ -279,8 +279,8 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
   // Draw correct clock markings
   {
     for (int i = 0; i < 12; i++) {
-      GPoint pt1 = rayFrom(DEG_TO_TRIGANGLE(i * 30), center.x - 25);
-      GPoint pt2 = rayFrom(DEG_TO_TRIGANGLE(i * 30), center.x - 22);
+      GPoint pt1 = rayFrom(DEG_TO_TRIGANGLE(i * 30), window.p_center.x - 25);
+      GPoint pt2 = rayFrom(DEG_TO_TRIGANGLE(i * 30), window.p_center.x - 22);
       bool big = i % 3 == 0;
       // todo replace colors with palette
       graphics_context_set_stroke_color(ctx, COLOR_WINDOW);
@@ -296,13 +296,13 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
 
   // Draw hub shadow
   graphics_context_set_fill_color(ctx, COLOR_WINDOW);
-  graphics_fill_circle(ctx, center, 3);
+  graphics_fill_circle(ctx, window.p_center, 3);
 
   // Draw minute shadow
   {
     graphics_context_set_stroke_color(ctx, COLOR_TIME);
     graphics_context_set_stroke_width(ctx, 3);
-    graphics_draw_line(ctx, center, rayFrom(minAngle, minArmStart));
+    graphics_draw_line(ctx, window.p_center, rayFrom(minAngle, minArmStart));
     graphics_context_set_stroke_width(ctx, 7);
     graphics_draw_line(ctx, rayFrom(minAngle, minArmStart),
                        rayFrom(minAngle, minArmEnd));
@@ -312,7 +312,7 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
   {
     graphics_context_set_stroke_color(ctx, COLOR_TIME);
     graphics_context_set_stroke_width(ctx, 1);
-    graphics_draw_line(ctx, center, rayFrom(minAngle, minArmStart));
+    graphics_draw_line(ctx, window.p_center, rayFrom(minAngle, minArmStart));
     graphics_context_set_stroke_width(ctx, 5);
     graphics_draw_line(ctx, rayFrom(minAngle, minArmStart),
                        rayFrom(minAngle, minArmEnd));
@@ -322,7 +322,7 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
   {
     graphics_context_set_stroke_color(ctx, COLOR_WINDOW);
     graphics_context_set_stroke_width(ctx, 3);
-    graphics_draw_line(ctx, center, rayFrom(hourAngle, hourArmStart));
+    graphics_draw_line(ctx, window.p_center, rayFrom(hourAngle, hourArmStart));
     graphics_context_set_stroke_width(ctx, 9);
     graphics_draw_line(ctx, rayFrom(hourAngle, hourArmStart),
                        rayFrom(hourAngle, hourArmEnd));
@@ -332,7 +332,7 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
   {
     graphics_context_set_stroke_color(ctx, COLOR_TIME);
     graphics_context_set_stroke_width(ctx, 1);
-    graphics_draw_line(ctx, center, rayFrom(hourAngle, hourArmStart));
+    graphics_draw_line(ctx, window.p_center, rayFrom(hourAngle, hourArmStart));
     graphics_context_set_stroke_width(ctx, 7);
     graphics_draw_line(ctx, rayFrom(hourAngle, hourArmStart),
                        rayFrom(hourAngle, hourArmEnd));
@@ -340,7 +340,7 @@ void analog_update_proc(Layer* layer, GContext* ctx) {
 
   // Draw hub
   graphics_context_set_fill_color(ctx, COLOR_TIME);
-  graphics_fill_circle(ctx, center, 2);
+  graphics_fill_circle(ctx, window.p_center, 2);
 }
 
 // set colors to layers and mark all dirty

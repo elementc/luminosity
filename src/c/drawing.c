@@ -69,13 +69,13 @@ int hr_to_a(int hour) { return DEG_TO_TRIGANGLE(180 + (15 * hour)); }
 
 // perimeter calc
 void calculate_perimeter(Layer* layer) {
-  bounds = layer_get_bounds(layer);
-  center = grect_center_point(&bounds);
+  window.r_bounds = layer_get_bounds(layer);
+  window.p_center = grect_center_point(&window.r_bounds);
 
-  int perimeter = (bounds.size.w + bounds.size.h) * 2;
+  int perimeter = (window.r_bounds.size.w + window.r_bounds.size.h) * 2;
   step = perimeter / 60;
-  int topcount = bounds.size.w / step;
-  int sidecount = bounds.size.h / step;
+  int topcount = window.r_bounds.size.w / step;
+  int sidecount = window.r_bounds.size.h / step;
 
   int halftop = topcount / 2;
 
@@ -87,7 +87,7 @@ void calculate_perimeter(Layer* layer) {
 
 // Analog hands drawing
 GPoint rayFrom(int tri, int radius) {
-  GPoint ray = {center.x + sin_lookup(tri) * radius / TRIG_MAX_RATIO,
-                center.y - cos_lookup(tri) * radius / TRIG_MAX_RATIO};
+  GPoint ray = {window.p_center.x + sin_lookup(tri) * radius / TRIG_MAX_RATIO,
+                window.p_center.y - cos_lookup(tri) * radius / TRIG_MAX_RATIO};
   return ray;
 }
