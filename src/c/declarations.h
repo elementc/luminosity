@@ -27,6 +27,7 @@ typedef struct {
     TextLayer* tl_current_temperature;
     TextLayer* tl_high_low_forecast_temperature;
     TextLayer* tl_wind_speed;
+    TextLayer* tl_wind_bearing;
 } WindowStorage;
 
 extern WindowStorage window;
@@ -42,7 +43,6 @@ extern char s_battery_string[6];
 extern int s_battery_level;
 
 /* Weather */
-extern TextLayer* s_wind_bearing_layer;
 extern char forecast_clouds_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern char forecast_precip_type_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern char forecast_precip_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];

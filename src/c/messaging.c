@@ -107,7 +107,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     text_layer_set_text(window.tl_current_temperature, temperature_buffer);
     text_layer_set_text(window.tl_high_low_forecast_temperature, forecast_high_low_buffer);
     text_layer_set_text(window.tl_wind_speed, wind_speed_buffer);
-    text_layer_set_text(s_wind_bearing_layer, wind_bearing_buffer);
+    text_layer_set_text(window.tl_wind_bearing, wind_bearing_buffer);
 
     char* conditions = conditions_tuple->value->cstring;
     for (int i = 0; i < 10; i++) {

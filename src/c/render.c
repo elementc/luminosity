@@ -129,13 +129,13 @@ void main_window_load(Window* pw__window_to_load) {
                   text_layer_get_layer(window.tl_high_low_forecast_temperature));
 
   // forecast high/low text layer
-  s_wind_bearing_layer = text_layer_create(forecastHighLowRect);
-  text_layer_set_background_color(s_wind_bearing_layer, COLOR_CLEAR);
-  text_layer_set_text(s_wind_bearing_layer, "");
-  text_layer_set_font(s_wind_bearing_layer, s_date_font);
-  text_layer_set_text_alignment(s_wind_bearing_layer, GTextAlignmentRight);
+  window.tl_wind_bearing = text_layer_create(forecastHighLowRect);
+  text_layer_set_background_color(window.tl_wind_bearing, COLOR_CLEAR);
+  text_layer_set_text(window.tl_wind_bearing, "");
+  text_layer_set_font(window.tl_wind_bearing, s_date_font);
+  text_layer_set_text_alignment(window.tl_wind_bearing, GTextAlignmentRight);
   layer_add_child(window_get_root_layer(pw__window_to_load),
-                  text_layer_get_layer(s_wind_bearing_layer));
+                  text_layer_get_layer(window.tl_wind_bearing));
 
   // Create time TextLayer
   s_time_layer = text_layer_create(timeRect);
@@ -203,7 +203,7 @@ void main_window_unload(Window* _) {
   text_layer_destroy(window.tl_current_temperature);
   text_layer_destroy(window.tl_wind_speed);
   text_layer_destroy(window.tl_high_low_forecast_temperature);
-  text_layer_destroy(s_wind_bearing_layer);
+  text_layer_destroy(window.tl_wind_bearing);
   text_layer_destroy(window.tl_battery);
   layer_destroy(s_analog_layer);
   layer_destroy(s_forecast_layer);
@@ -349,7 +349,7 @@ void apply_colors_to_layers() {
   text_layer_set_text_color(window.tl_current_temperature, COLOR_TEMP);
   text_layer_set_text_color(window.tl_wind_speed, COLOR_TEMP);
   text_layer_set_text_color(window.tl_high_low_forecast_temperature, COLOR_TEMP);
-  text_layer_set_text_color(s_wind_bearing_layer, COLOR_TEMP);
+  text_layer_set_text_color(window.tl_wind_bearing, COLOR_TEMP);
   text_layer_set_text_color(s_time_layer, COLOR_TIME);
   text_layer_set_text_color(s_date_layer, COLOR_DATE);
   text_layer_set_text_color(window.tl_battery, COLOR_STEPS);

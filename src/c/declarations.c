@@ -14,7 +14,6 @@ char s_battery_string[6];
 int s_battery_level;
 
 /* Weather */
-TextLayer* s_wind_bearing_layer;
 char forecast_clouds_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 char forecast_precip_type_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 char forecast_precip_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
