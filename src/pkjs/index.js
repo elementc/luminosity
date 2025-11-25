@@ -23,7 +23,7 @@ function locationSuccess(pos) {
 }
 
 function locationError(err) {
-    console.log('location error (' + err.code + '): ' + err.message);
+    console.log('location error (' + err + ')');
     // TODO: should cache last location somewhere...
 }
 
