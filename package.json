@@ -1,7 +1,7 @@
 {
     "author": "Casey Doran",
     "dependencies": {
-        "pebble-clay": "^1.0.3",
+        "@rebble/clay": "^1.0.6",
         "pebble-effect-layer": "^1.1.0"
     },
     "keywords": [],
