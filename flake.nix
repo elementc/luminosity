@@ -2,7 +2,7 @@
   description = "Luminosity Weather Watchface";
 
   inputs = {
-    pebble.url = "github:pebble-dev/pebble.nix";
+    pebble.url = "git+file:/home/casey/Repos/pebble.nix/";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
