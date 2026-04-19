@@ -1,8 +1,8 @@
 {
     "author": "Casey Doran",
     "dependencies": {
-        "@rebble/clay": "^1.0.6",
-        "pebble-effect-layer": "^1.1.0"
+        "@rebble/clay": "^1.0.8",
+        "pebble-effect-layer": "^1.4.0"
     },
     "keywords": [],
     "name": "luminosity",
@@ -123,7 +123,8 @@
             "basalt",
             "chalk",
             "diorite",
-            "emery"
+            "emery",
+            "gabbro"
         ],
         "uuid": "78475e97-e2ec-477b-ae5b-4f172df569eb",
         "watchapp": {

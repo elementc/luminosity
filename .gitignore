@@ -5,3 +5,4 @@ flake.lock
 .direnv/
 flake.lock
 package-lock.json
+result
