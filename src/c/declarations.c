@@ -14,7 +14,7 @@ char s_battery_string[6];
 int s_battery_level;
 
 /* Weather */
-int temperature, tempHigh, tempLow, windSpeed, windBearing;
+int tempHigh, tempLow, windSpeed, windBearing;
 bool s_weather_ready;
 bool forecast_ring_in_wind_mode;
 

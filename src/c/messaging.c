@@ -84,8 +84,12 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
                                : 0.868976f * (double)reported_wind_speed)
             : reported_wind_speed;
     windBearing = (int)wind_bearing_tuple->value->int32;
+
+    // Read out current temperature.
+    weather_cache.temperature = temp_tuple->value->int32;
     snprintf(temperature_buffer, sizeof(temperature_buffer), "%d˚",
-             (int)temp_tuple->value->int32); // TODO units
+             weather_cache.temperature); // TODO optionally display units someday
+
     snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s", windSpeed,
              (settings.Knots ? "kts" : (settings.Metric ? "m/s" : "mph")));
     snprintf(wind_bearing_buffer, sizeof(wind_bearing_buffer), "%d˚ %s",
