@@ -100,7 +100,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     snprintf(weather_cache.forecast_precip_intensity,
              sizeof(weather_cache.forecast_precip_intensity), "%s",
              forecast_precip_intensity_tuple->value->cstring);
-    snprintf(forecast_temp_str, sizeof(forecast_temp_str), "%s",
+    snprintf(weather_cache.forecast_temp, sizeof(weather_cache.forecast_temp), "%s",
              forecast_temp_tuple->value->cstring);
     snprintf(forecast_wind_intensity_str, sizeof(forecast_wind_intensity_str),
              "%s", forecast_wind_intensity_tuple->value->cstring);

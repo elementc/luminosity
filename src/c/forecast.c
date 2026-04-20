@@ -45,7 +45,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
     for (int i = 0; i < 24; i++) {
 
       // outer (light + temp + clouds) ring
-      int temp = (forecast_temp_str[((24 - hour) + i) % 24] - '0') + 2;
+      int temp = (weather_cache.forecast_temp[((24 - hour) + i) % 24] - '0') + 2;
       graphics_context_set_stroke_width(ctx, temp);
       if (i >= s_sunset || i < s_sunrise) {
         // night color pick
@@ -180,7 +180,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
   } else { // full set of rings
     for (int i = 0; i < 24; i++) {
       // outer (light + temp + clouds) ring
-      int temp = (forecast_temp_str[((24 - hour) + i) % 24] - '0') + 6;
+      int temp = (weather_cache.forecast_temp[((24 - hour) + i) % 24] - '0') + 6;
       graphics_context_set_stroke_width(ctx, temp);
       if (i >= s_sunset || i < s_sunrise) {
         // night color pick
