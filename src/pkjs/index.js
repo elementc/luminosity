@@ -78,7 +78,7 @@ var settings = {};
 function loadSettings() {
     try {
         settings = JSON.parse(localStorage.getItem('clay-settings')) || defaultSettings;
-        console.log("Settings: " + settings);
+        console.log("Loaded Settings: " + settings);
     } catch (e) {
         console.log("Failed to get settings: " + e);
     }
@@ -92,6 +92,10 @@ Pebble.addEventListener('ready',
         console.log('PebbleKit JS ready!');
 
         // Get the initial weather
-        getLocation();
+       // getLocation();
+
+        // debug: send test space data and weather data
+        getSpace(47.674, -122.178, new Date());
+        weather.testWeather();
     }
 );
