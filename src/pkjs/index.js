@@ -3,7 +3,7 @@ var weather = require('./openmeteoweatherdata');
 
 
 // Listen for when an AppMessage is received
-// this is a once-every-30 min ping for new weather data
+// this is a periodic ping for new weather data
 Pebble.addEventListener('appmessage',
     function (e) {
         console.log('AppMessage received!');
@@ -95,7 +95,7 @@ Pebble.addEventListener('ready',
        // getLocation();
 
         // debug: send test space data and weather data
-        getSpace(47.674, -122.178, new Date());
+        getSpace(0, 0, new Date());
         weather.testWeather();
     }
 );
