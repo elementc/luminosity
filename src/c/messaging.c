@@ -93,7 +93,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer),
              "%d˚/%d˚", (int)forecast_high_tuple->value->int32,
              (int)forecast_low_tuple->value->int32);
-    snprintf(forecast_clouds_str, sizeof(forecast_clouds_str), "%s",
+    snprintf(weather_cache.forecast_clouds, sizeof(weather_cache.forecast_clouds), "%s",
              forecast_clouds_tuple->value->cstring);
     snprintf(forecast_precip_type_str, sizeof(forecast_precip_type_str), "%s",
              forecast_precip_type_tuple->value->cstring);

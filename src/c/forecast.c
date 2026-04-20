@@ -49,17 +49,17 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
       graphics_context_set_stroke_width(ctx, temp);
       if (i >= s_sunset || i < s_sunrise) {
         // night color pick
-        if (forecast_clouds_str[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
           graphics_context_set_fill_color(ctx, COLOR_NIGHT);
-        else if (forecast_clouds_str[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
           graphics_context_set_fill_color(ctx, COLOR_NIGHT_PARTLY);
         else
           graphics_context_set_fill_color(ctx, COLOR_NIGHT_CLOUDY);
       } else {
         // day color pick
-        if (forecast_clouds_str[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
           graphics_context_set_fill_color(ctx, COLOR_DAY);
-        else if (forecast_clouds_str[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
           graphics_context_set_fill_color(ctx, COLOR_DAY_PARTLY);
         else
           graphics_context_set_fill_color(ctx, COLOR_DAY_CLOUDY);
@@ -184,17 +184,17 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
       graphics_context_set_stroke_width(ctx, temp);
       if (i >= s_sunset || i < s_sunrise) {
         // night color pick
-        if (forecast_clouds_str[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
           graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
-        else if (forecast_clouds_str[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
           graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
         else
           graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
       } else {
         // day color pick
-        if (forecast_clouds_str[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
           graphics_context_set_stroke_color(ctx, COLOR_DAY);
-        else if (forecast_clouds_str[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
           graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
         else
           graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
