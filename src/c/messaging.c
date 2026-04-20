@@ -94,9 +94,11 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
              (settings.Knots ? "kts" : (settings.Metric ? "m/s" : "mph")));
     snprintf(wind_bearing_buffer, sizeof(wind_bearing_buffer), "%d˚ %s",
              windBearing, bearing_to_cardinal(windBearing));
+    weather_cache.temp_high = forecast_high_tuple->value->int32;
+    weather_cache.temp_low = forecast_low_tuple->value->int32;
     snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer),
-             "%d˚/%d˚", (int)forecast_high_tuple->value->int32,
-             (int)forecast_low_tuple->value->int32);
+             "%d˚/%d˚", weather_cache.temp_high,
+             weather_cache.temp_low);
     snprintf(weather_cache.forecast_clouds, sizeof(weather_cache.forecast_clouds), "%s",
              forecast_clouds_tuple->value->cstring);
     snprintf(weather_cache.forecast_precip_type, sizeof(weather_cache.forecast_precip_type), "%s",
