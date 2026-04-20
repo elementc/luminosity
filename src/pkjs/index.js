@@ -92,10 +92,10 @@ Pebble.addEventListener('ready',
         console.log('PebbleKit JS ready!');
 
         // Get the initial weather
-       // getLocation();
+        getLocation();
 
         // debug: send test space data and weather data
-        getSpace(0, 0, new Date());
-        weather.testWeather();
+        // getSpace(0, 0, new Date());
+        // weather.testWeather();
     }
 );
