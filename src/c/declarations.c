@@ -14,9 +14,6 @@ char s_battery_string[6];
 int s_battery_level;
 
 /* Weather */
-char forecast_wind_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
-
-
 int temperature, tempHigh, tempLow, windSpeed, windBearing;
 bool s_weather_ready;
 bool forecast_ring_in_wind_mode;
