@@ -78,22 +78,24 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
   if (temp_tuple) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received weather data");
     int reported_wind_speed = wind_speed_tuple->value->int32;
-    windSpeed =
+    weather_cache.wind_speed =
         (int)settings.Knots
             ? (settings.Metric ? 1.94384f * (double)reported_wind_speed
                                : 0.868976f * (double)reported_wind_speed)
             : reported_wind_speed;
-    windBearing = (int)wind_bearing_tuple->value->int32;
+    weather_cache.wind_bearing = wind_bearing_tuple->value->int32;
 
     // Read out current temperature.
     weather_cache.temperature = temp_tuple->value->int32;
     snprintf(temperature_buffer, sizeof(temperature_buffer), "%d˚",
              weather_cache.temperature); // TODO optionally display units someday
 
-    snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s", windSpeed,
+    snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s", weather_cache.wind_speed,
              (settings.Knots ? "kts" : (settings.Metric ? "m/s" : "mph")));
+
     snprintf(wind_bearing_buffer, sizeof(wind_bearing_buffer), "%d˚ %s",
-             windBearing, bearing_to_cardinal(windBearing));
+             weather_cache.wind_bearing, bearing_to_cardinal(weather_cache.wind_bearing));
+
     weather_cache.temp_high = forecast_high_tuple->value->int32;
     weather_cache.temp_low = forecast_low_tuple->value->int32;
     snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer),

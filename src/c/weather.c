@@ -47,7 +47,7 @@ void bearing_icon_update_proc(Layer* layer, GContext* ctx) {
     graphics_context_set_stroke_color(ctx, COLOR_TIME);
     graphics_draw_circle(ctx, center, radius);
     GPoint edge = gpoint_from_polar(bounds, GOvalScaleModeFillCircle,
-                                    DEG_TO_TRIGANGLE(windBearing));
+                                    DEG_TO_TRIGANGLE(weather_cache.wind_bearing));
     graphics_context_set_stroke_color(ctx, COLOR_WIND_DAY);
     graphics_draw_line(ctx, center, edge);
   }

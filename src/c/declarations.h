@@ -20,7 +20,7 @@ typedef struct {
   char forecast_precip_intensity[HOURLY_WEATHER_DATA_BUFFER_LEN];
   char forecast_temp[HOURLY_WEATHER_DATA_BUFFER_LEN];
   char forecast_wind_intensity[HOURLY_WEATHER_DATA_BUFFER_LEN];
-  int temperature, temp_high, temp_low;
+  int temperature, temp_high, temp_low, wind_speed, wind_bearing;
 
   // TODO: need reference time so we can index with old data.
 } WeatherCache;
@@ -72,7 +72,6 @@ extern char s_battery_string[6];
 extern int s_battery_level;
 
 /* Weather */
-extern int windSpeed, windBearing;
 extern bool s_weather_ready;
 extern bool forecast_ring_in_wind_mode;
 
