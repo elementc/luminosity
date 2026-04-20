@@ -104,7 +104,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
       } else {
         // c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
         if (i >= s_sunset || i < s_sunrise) {
-          switch (forecast_precip_type_str[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
           case 'r':
             graphics_context_set_fill_color(ctx, COLOR_RAINY_NIGHT);
             break;
@@ -120,7 +120,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
             continue; // don't draw clear segments!
           }
         } else {
-          switch (forecast_precip_type_str[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
           case 'r':
             graphics_context_set_fill_color(ctx, COLOR_RAINY_DAY);
             break;
@@ -220,7 +220,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
         // precip data
         // c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
         if (i >= s_sunset || i < s_sunrise) {
-          switch (forecast_precip_type_str[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
           case 'r':
             graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
             break;
@@ -236,7 +236,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
             continue; // don't draw clear segments!
           }
         } else {
-          switch (forecast_precip_type_str[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
           case 'r':
             graphics_context_set_stroke_color(ctx, COLOR_RAINY_DAY);
             break;

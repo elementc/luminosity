@@ -16,6 +16,7 @@ extern ClaySettings settings;
 
 typedef struct {
   char forecast_clouds[HOURLY_WEATHER_DATA_BUFFER_LEN];
+  char forecast_precip_type[HOURLY_WEATHER_DATA_BUFFER_LEN];
   
 } WeatherCache;
 extern WeatherCache weather_cache;
