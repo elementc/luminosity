@@ -17,7 +17,8 @@ extern ClaySettings settings;
 typedef struct {
   char forecast_clouds[HOURLY_WEATHER_DATA_BUFFER_LEN];
   char forecast_precip_type[HOURLY_WEATHER_DATA_BUFFER_LEN];
-  
+  char forecast_precip_intensity[HOURLY_WEATHER_DATA_BUFFER_LEN];
+
 } WeatherCache;
 extern WeatherCache weather_cache;
 
@@ -67,8 +68,6 @@ extern char s_battery_string[6];
 extern int s_battery_level;
 
 /* Weather */
-extern char forecast_precip_type_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
-extern char forecast_precip_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern char forecast_temp_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern char forecast_wind_intensity_str[HOURLY_WEATHER_DATA_BUFFER_LEN];
 extern int temperature, tempHigh, tempLow, windSpeed, windBearing;

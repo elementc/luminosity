@@ -137,7 +137,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
           }
         }
         int width =
-            (forecast_precip_intensity_str[((24 - hour) + i) % 24] - '0') + 2;
+            (weather_cache.forecast_precip_intensity[((24 - hour) + i) % 24] - '0') + 2;
         p1 = hours(i, w, h, temp);
         p2 = hours(i + 1, w, h, temp);
         if (i < 3 || i >= 21) // bottom
@@ -253,7 +253,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
           }
         }
         int width =
-            (forecast_precip_intensity_str[((24 - hour) + i) % 24] - '0') + 4;
+            (weather_cache.forecast_precip_intensity[((24 - hour) + i) % 24] - '0') + 4;
         graphics_context_set_stroke_width(ctx, width);
         GRect r2 = grect_crop(fcst_bounds, temp + width / 2);
         graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
