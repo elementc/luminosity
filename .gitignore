@@ -6,3 +6,4 @@ flake.lock
 flake.lock
 package-lock.json
 result
+.lock-waf_linux_build
