@@ -1,5 +1,5 @@
-#include "src/c/luminosity.h"
 #include "src/c/declarations.h"
+#include "src/c/luminosity.h"
 
 ClaySettings settings;
 

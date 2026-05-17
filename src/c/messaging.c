@@ -13,6 +13,7 @@ void send_message() {
   // Send the message!
   app_message_outbox_send();
 }
+
 // appmessage
 void inbox_received_callback(DictionaryIterator* iterator, void* context) {
   APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received message");
@@ -87,23 +88,27 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
 
     // Read out current temperature.
     weather_cache.temperature = temp_tuple->value->int32;
-    snprintf(temperature_buffer, sizeof(temperature_buffer), "%d˚",
+    snprintf(
+        temperature_buffer, sizeof(temperature_buffer), "%d˚",
              weather_cache.temperature); // TODO optionally display units someday
 
-    snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s", weather_cache.wind_speed,
+    snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s",
+             weather_cache.wind_speed,
              (settings.Knots ? "kts" : (settings.Metric ? "m/s" : "mph")));
 
     snprintf(wind_bearing_buffer, sizeof(wind_bearing_buffer), "%d˚ %s",
-             weather_cache.wind_bearing, bearing_to_cardinal(weather_cache.wind_bearing));
+             weather_cache.wind_bearing,
+             bearing_to_cardinal(weather_cache.wind_bearing));
 
     weather_cache.temp_high = forecast_high_tuple->value->int32;
     weather_cache.temp_low = forecast_low_tuple->value->int32;
     snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer),
-             "%d˚/%d˚", weather_cache.temp_high,
-             weather_cache.temp_low);
-    snprintf(weather_cache.forecast_clouds, sizeof(weather_cache.forecast_clouds), "%s",
+             "%d˚/%d˚", weather_cache.temp_high, weather_cache.temp_low);
+    snprintf(weather_cache.forecast_clouds,
+             sizeof(weather_cache.forecast_clouds), "%s",
              forecast_clouds_tuple->value->cstring);
-    snprintf(weather_cache.forecast_precip_type, sizeof(weather_cache.forecast_precip_type), "%s",
+    snprintf(weather_cache.forecast_precip_type,
+             sizeof(weather_cache.forecast_precip_type), "%s",
              forecast_precip_type_tuple->value->cstring);
     snprintf(weather_cache.forecast_precip_intensity,
              sizeof(weather_cache.forecast_precip_intensity), "%s",
@@ -113,14 +118,16 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     snprintf(weather_cache.forecast_wind_intensity, sizeof(weather_cache.forecast_wind_intensity),
              "%s", forecast_wind_intensity_tuple->value->cstring);
     text_layer_set_text(window.tl_current_temperature, temperature_buffer);
-    text_layer_set_text(window.tl_high_low_forecast_temperature, forecast_high_low_buffer);
+    text_layer_set_text(window.tl_high_low_forecast_temperature,
+                        forecast_high_low_buffer);
     text_layer_set_text(window.tl_wind_speed, wind_speed_buffer);
     text_layer_set_text(window.tl_wind_bearing, wind_bearing_buffer);
 
     char* conditions = conditions_tuple->value->cstring;
     for (int i = 0; i < 10; i++) {
       if (strcmp(conditions, condition_icons[i]) == 0) {
-        bitmap_layer_set_bitmap(window.bl_conditions, s_condition_icon_bitmap[i]);
+        bitmap_layer_set_bitmap(window.bl_conditions,
+                                s_condition_icon_bitmap[i]);
         effect_layer_remove_effect(window.el_conditions_inverter);
         if (settings.Invert_Colors) {
           effect_layer_add_effect(window.el_conditions_inverter,

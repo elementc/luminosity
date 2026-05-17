@@ -20,8 +20,7 @@ void bluetooth_callback(bool connected) {
   }
   effect_layer_remove_effect(window.el_bt_inverter);
   if (!connected && settings.Invert_Colors) {
-    effect_layer_add_effect(window.el_bt_inverter, effect_invert_bw_only,
-                            NULL);
+    effect_layer_add_effect(window.el_bt_inverter, effect_invert_bw_only, NULL);
   }
 }
 
@@ -98,7 +97,6 @@ void prv_unobstructed_did_change(void* context) {
   }
   prv_update_display();
 }
-
 
 time_t last_tap_seconds = 0;
 uint16_t last_tap_ms = 0;

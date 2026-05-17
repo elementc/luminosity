@@ -6,8 +6,6 @@
 #include "src/c/drawing.h"
 #include "src/c/layout_constants.h"
 
-
-
 void main_window_load(Window* pw__window_to_load) {
 
   Layer* window_layer = window_get_root_layer(pw__window_to_load);
@@ -71,8 +69,10 @@ void main_window_load(Window* pw__window_to_load) {
                   bitmap_layer_get_layer(window.bl_conditions));
 
   window.l_wind_bearing_compass = layer_create(conditionRect);
-  layer_set_update_proc(window.l_wind_bearing_compass, bearing_icon_update_proc);
-  layer_add_child(window_get_root_layer(pw__window_to_load), window.l_wind_bearing_compass);
+  layer_set_update_proc(window.l_wind_bearing_compass,
+                        bearing_icon_update_proc);
+  layer_add_child(window_get_root_layer(pw__window_to_load),
+                  window.l_wind_bearing_compass);
 
   window.el_conditions_inverter = effect_layer_create(conditionRect);
   layer_add_child(window_get_root_layer(pw__window_to_load),
@@ -95,7 +95,8 @@ void main_window_load(Window* pw__window_to_load) {
   // Weather forecast layer
   window.l_forecast_ring = layer_create(window_bounds);
   layer_set_update_proc(window.l_forecast_ring, forecast_update_proc);
-  layer_add_child(window_get_root_layer(pw__window_to_load), window.l_forecast_ring);
+  layer_add_child(window_get_root_layer(pw__window_to_load),
+                  window.l_forecast_ring);
 
   // Create 24 hour layer
   window.l_24hour = layer_create(window_bounds);
@@ -107,7 +108,8 @@ void main_window_load(Window* pw__window_to_load) {
   text_layer_set_background_color(window.tl_current_temperature, COLOR_CLEAR);
   text_layer_set_text(window.tl_current_temperature, "");
   text_layer_set_font(window.tl_current_temperature, s_date_font);
-  text_layer_set_text_alignment(window.tl_current_temperature, GTextAlignmentRight);
+  text_layer_set_text_alignment(window.tl_current_temperature,
+                                GTextAlignmentRight);
   layer_add_child(window_get_root_layer(pw__window_to_load),
                   text_layer_get_layer(window.tl_current_temperature));
 
@@ -120,13 +122,17 @@ void main_window_load(Window* pw__window_to_load) {
                   text_layer_get_layer(window.tl_wind_speed));
 
   // forecast high/low text layer
-  window.tl_high_low_forecast_temperature = text_layer_create(forecastHighLowRect);
-  text_layer_set_background_color(window.tl_high_low_forecast_temperature, COLOR_CLEAR);
+  window.tl_high_low_forecast_temperature =
+      text_layer_create(forecastHighLowRect);
+  text_layer_set_background_color(window.tl_high_low_forecast_temperature,
+                                  COLOR_CLEAR);
   text_layer_set_text(window.tl_high_low_forecast_temperature, "");
   text_layer_set_font(window.tl_high_low_forecast_temperature, s_date_font);
-  text_layer_set_text_alignment(window.tl_high_low_forecast_temperature, GTextAlignmentRight);
-  layer_add_child(window_get_root_layer(pw__window_to_load),
-                  text_layer_get_layer(window.tl_high_low_forecast_temperature));
+  text_layer_set_text_alignment(window.tl_high_low_forecast_temperature,
+                                GTextAlignmentRight);
+  layer_add_child(
+      window_get_root_layer(pw__window_to_load),
+      text_layer_get_layer(window.tl_high_low_forecast_temperature));
 
   // forecast high/low text layer
   window.tl_wind_bearing = text_layer_create(forecastHighLowRect);
@@ -256,7 +262,6 @@ void label_update_proc(Layer* layer, GContext* ctx) {
 #endif
 }
 
-
 void analog_update_proc(Layer* layer, GContext* ctx) {
 
   time_t temp = time(NULL);
@@ -348,7 +353,8 @@ void apply_colors_to_layers() {
   window_set_background_color(window.w_main, COLOR_WINDOW);
   text_layer_set_text_color(window.tl_current_temperature, COLOR_TEMP);
   text_layer_set_text_color(window.tl_wind_speed, COLOR_TEMP);
-  text_layer_set_text_color(window.tl_high_low_forecast_temperature, COLOR_TEMP);
+  text_layer_set_text_color(window.tl_high_low_forecast_temperature,
+                            COLOR_TEMP);
   text_layer_set_text_color(window.tl_wind_bearing, COLOR_TEMP);
   text_layer_set_text_color(window.tl_time, COLOR_TIME);
   text_layer_set_text_color(window.tl_date, COLOR_DATE);
@@ -361,7 +367,7 @@ void apply_colors_to_layers() {
 
   effect_layer_remove_effect(window.el_conditions_inverter);
   if (settings.Invert_Colors && s_weather_ready) {
-    effect_layer_add_effect(window.el_conditions_inverter, effect_invert_bw_only,
-                            NULL);
+    effect_layer_add_effect(window.el_conditions_inverter,
+                            effect_invert_bw_only, NULL);
   }
 }

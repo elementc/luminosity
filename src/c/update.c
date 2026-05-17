@@ -61,16 +61,20 @@ void prv_update_display() {
     layer_add_child(winrl, text_layer_get_layer(window.tl_wind_speed));
     layer_add_child(winrl, text_layer_get_layer(window.tl_wind_bearing));
     layer_add_child(winrl, window.l_wind_bearing_compass);
-    layer_remove_from_parent(text_layer_get_layer(window.tl_current_temperature));
-    layer_remove_from_parent(text_layer_get_layer(window.tl_high_low_forecast_temperature));
+    layer_remove_from_parent(
+        text_layer_get_layer(window.tl_current_temperature));
+    layer_remove_from_parent(
+        text_layer_get_layer(window.tl_high_low_forecast_temperature));
     layer_remove_from_parent(bitmap_layer_get_layer(window.bl_conditions));
     layer_remove_from_parent(
         effect_layer_get_layer(window.el_conditions_inverter));
   } else {
     layer_add_child(winrl, text_layer_get_layer(window.tl_current_temperature));
-    layer_add_child(winrl, text_layer_get_layer(window.tl_high_low_forecast_temperature));
+    layer_add_child(
+        winrl, text_layer_get_layer(window.tl_high_low_forecast_temperature));
     layer_add_child(winrl, bitmap_layer_get_layer(window.bl_conditions));
-    layer_add_child(winrl, effect_layer_get_layer(window.el_conditions_inverter));
+    layer_add_child(winrl,
+                    effect_layer_get_layer(window.el_conditions_inverter));
     layer_remove_from_parent(text_layer_get_layer(window.tl_wind_speed));
     layer_remove_from_parent(text_layer_get_layer(window.tl_wind_bearing));
     layer_remove_from_parent(window.l_wind_bearing_compass);
@@ -85,7 +89,8 @@ void prv_update_display() {
   layer_mark_dirty(window.l_wind_bearing_compass);
   layer_mark_dirty(text_layer_get_layer(window.tl_current_temperature));
   layer_mark_dirty(text_layer_get_layer(window.tl_wind_speed));
-  layer_mark_dirty(text_layer_get_layer(window.tl_high_low_forecast_temperature));
+  layer_mark_dirty(
+      text_layer_get_layer(window.tl_high_low_forecast_temperature));
   layer_mark_dirty(text_layer_get_layer(window.tl_wind_bearing));
   layer_mark_dirty(bitmap_layer_get_layer(window.bl_conditions));
   APP_LOG(APP_LOG_LEVEL_INFO, "Updated display.");
