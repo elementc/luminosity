@@ -1,5 +1,6 @@
-#include "src/c/declarations.h"
 #include "src/c/luminosity.h"
+#include "src/c/declarations.h"
+
 
 ClaySettings settings;
 
@@ -43,6 +44,8 @@ char* condition_icons[] = {"clear-day",
                            "partly-cloudy-night"};
 
 GBitmap* s_condition_icon_bitmap[10];
+
+_Static_assert(sizeof(condition_icons) == sizeof(s_condition_icon_bitmap));
 
 int upperright, lowerright, lowerleft, upperleft, step;
 

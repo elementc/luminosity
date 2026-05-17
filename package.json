@@ -37,7 +37,8 @@
             "FORECAST_WIND_HIGH",
             "FORECAST_WIND_LOW",
             "CFG_ENABLE_WIND_RING",
-            "CFG_INVERT_COLORS"
+            "CFG_INVERT_COLORS",
+            "WEATHER_FETCHED_HOUR"
         ],
         "projectType": "native",
         "resources": {

@@ -74,6 +74,8 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
       dict_find(iterator, MESSAGE_KEY_FORECAST_WIND_INTENSITY);
   Tuple* wind_speed_tuple = dict_find(iterator, MESSAGE_KEY_WIND_SPEED);
   Tuple* wind_bearing_tuple = dict_find(iterator, MESSAGE_KEY_WIND_BEARING);
+  Tuple* forecast_weather_fetched_hour =
+      dict_find(iterator, MESSAGE_KEY_WEATHER_FETCHED_HOUR);
 
   // If all data is available, use it
   if (temp_tuple) {
@@ -88,22 +90,10 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
 
     // Read out current temperature.
     weather_cache.temperature = temp_tuple->value->int32;
-    snprintf(
-        temperature_buffer, sizeof(temperature_buffer), "%d˚",
-             weather_cache.temperature); // TODO optionally display units someday
-
-    snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s",
-             weather_cache.wind_speed,
-             (settings.Knots ? "kts" : (settings.Metric ? "m/s" : "mph")));
-
-    snprintf(wind_bearing_buffer, sizeof(wind_bearing_buffer), "%d˚ %s",
-             weather_cache.wind_bearing,
-             bearing_to_cardinal(weather_cache.wind_bearing));
 
     weather_cache.temp_high = forecast_high_tuple->value->int32;
     weather_cache.temp_low = forecast_low_tuple->value->int32;
-    snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer),
-             "%d˚/%d˚", weather_cache.temp_high, weather_cache.temp_low);
+
     snprintf(weather_cache.forecast_clouds,
              sizeof(weather_cache.forecast_clouds), "%s",
              forecast_clouds_tuple->value->cstring);
@@ -113,32 +103,23 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     snprintf(weather_cache.forecast_precip_intensity,
              sizeof(weather_cache.forecast_precip_intensity), "%s",
              forecast_precip_intensity_tuple->value->cstring);
-    snprintf(weather_cache.forecast_temp, sizeof(weather_cache.forecast_temp), "%s",
-             forecast_temp_tuple->value->cstring);
-    snprintf(weather_cache.forecast_wind_intensity, sizeof(weather_cache.forecast_wind_intensity),
-             "%s", forecast_wind_intensity_tuple->value->cstring);
-    text_layer_set_text(window.tl_current_temperature, temperature_buffer);
-    text_layer_set_text(window.tl_high_low_forecast_temperature,
-                        forecast_high_low_buffer);
-    text_layer_set_text(window.tl_wind_speed, wind_speed_buffer);
-    text_layer_set_text(window.tl_wind_bearing, wind_bearing_buffer);
+    snprintf(weather_cache.forecast_temp, sizeof(weather_cache.forecast_temp),
+             "%s", forecast_temp_tuple->value->cstring);
+    snprintf(weather_cache.forecast_wind_intensity,
+             sizeof(weather_cache.forecast_wind_intensity), "%s",
+             forecast_wind_intensity_tuple->value->cstring);
+    snprintf(weather_cache.conditions, sizeof(weather_cache.conditions), "%s",
+             conditions_tuple->value->cstring);
 
-    char* conditions = conditions_tuple->value->cstring;
-    for (int i = 0; i < 10; i++) {
-      if (strcmp(conditions, condition_icons[i]) == 0) {
-        bitmap_layer_set_bitmap(window.bl_conditions,
-                                s_condition_icon_bitmap[i]);
-        effect_layer_remove_effect(window.el_conditions_inverter);
-        if (settings.Invert_Colors) {
-          effect_layer_add_effect(window.el_conditions_inverter,
-                                  effect_invert_bw_only, NULL);
-        } else {
-          effect_layer_remove_effect(window.el_conditions_inverter);
-        }
-      }
-    }
+    weather_cache.weather_fetched_hour =
+        forecast_weather_fetched_hour->value->int32;
+    APP_LOG(APP_LOG_LEVEL_INFO, "Received weather data for hour %d.",
+            weather_cache.weather_fetched_hour);
+
     s_weather_ready = true;
     need_weather_update = false;
+    update_strings_from_weather_cache();
+    cache_weather_data();
     prv_update_display();
   }
 

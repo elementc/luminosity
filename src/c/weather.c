@@ -53,3 +53,45 @@ void bearing_icon_update_proc(Layer* layer, GContext* ctx) {
     graphics_draw_line(ctx, center, edge);
   }
 }
+
+void update_strings_from_weather_cache() {
+  if (s_weather_ready) {
+
+    snprintf(forecast_high_low_buffer, sizeof(forecast_high_low_buffer),
+             "%d˚/%d˚", weather_cache.temp_high, weather_cache.temp_low);
+    if (window.tl_high_low_forecast_temperature) {
+      text_layer_set_text(window.tl_high_low_forecast_temperature,
+                          forecast_high_low_buffer);
+    }
+
+    snprintf(
+        temperature_buffer, sizeof(temperature_buffer), "%d˚",
+        weather_cache.temperature); // TODO optionally display units someday
+    if (window.tl_current_temperature) {
+      text_layer_set_text(window.tl_current_temperature, temperature_buffer);
+    }
+
+    snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s",
+             weather_cache.wind_speed,
+             (settings.Knots ? "kts" : (settings.Metric ? "m/s" : "mph")));
+    if (window.tl_wind_speed) {
+      text_layer_set_text(window.tl_wind_speed, wind_speed_buffer);
+    }
+
+    snprintf(wind_bearing_buffer, sizeof(wind_bearing_buffer), "%d˚ %s",
+             weather_cache.wind_bearing,
+             bearing_to_cardinal(weather_cache.wind_bearing));
+    if (window.tl_wind_bearing) {
+      text_layer_set_text(window.tl_wind_bearing, wind_bearing_buffer);
+    }
+
+    if (window.bl_conditions) {
+      for (int i = 0; i < 10; i++) {
+        if (strcmp(weather_cache.conditions, condition_icons[i]) == 0) {
+          bitmap_layer_set_bitmap(window.bl_conditions,
+                                  s_condition_icon_bitmap[i]);
+        }
+      }
+    }
+  }
+}

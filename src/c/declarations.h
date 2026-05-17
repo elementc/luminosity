@@ -1,7 +1,7 @@
 #pragma once
 #include <pebble.h>
 
-#define HOURLY_WEATHER_DATA_BUFFER_LEN 72
+#define HOURLY_WEATHER_DATA_BUFFER_LEN 36
 
 typedef struct {
   bool Analog;
@@ -15,15 +15,18 @@ typedef struct {
 extern ClaySettings settings;
 
 typedef struct {
+  unsigned int struct_version;
   char forecast_clouds[HOURLY_WEATHER_DATA_BUFFER_LEN];
   char forecast_precip_type[HOURLY_WEATHER_DATA_BUFFER_LEN];
   char forecast_precip_intensity[HOURLY_WEATHER_DATA_BUFFER_LEN];
   char forecast_temp[HOURLY_WEATHER_DATA_BUFFER_LEN];
   char forecast_wind_intensity[HOURLY_WEATHER_DATA_BUFFER_LEN];
+  char conditions[20];
   int temperature, temp_high, temp_low, wind_speed, wind_bearing;
 
-  // TODO: need reference time so we can index with old data.
+  int weather_fetched_hour;
 } WeatherCache;
+
 extern WeatherCache weather_cache;
 
 typedef struct {

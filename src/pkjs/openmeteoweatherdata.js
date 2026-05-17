@@ -259,7 +259,7 @@ function build_precip_intensity_forecast_string(json, start_offset) {
 function parseWeatherData(json) {
     var start_offset = new Date().getHours(); // Start counting from the current hour (TODO god i hope this is 24h instead of 12h)
 
-    console.log("Assembling data for " + json.hourly.time[start_offset] + " through " + json.hourly.time[start_offset + 24] + "...");
+    console.log("Assembling data for offset " + start_offset + " - "  + json.hourly.time[start_offset] + " through " + json.hourly.time[start_offset + 24] + "...");
     console.log("Sunrise: " + space.sunrise + " Sunset: " + space.sunset);
 
     // Assemble dictionary using our keys
@@ -274,7 +274,8 @@ function parseWeatherData(json) {
         'FORECAST_WIND_INTENSITY': build_wind_intensity_forecast_string(json, start_offset),
         'FORECAST_TEMP': build_temperature_forecast_str(json, start_offset),
         'FORECAST_HIGH': get_high_temperature(json, start_offset),
-        'FORECAST_LOW': get_low_temperature(json, start_offset)
+        'FORECAST_LOW': get_low_temperature(json, start_offset),
+        'WEATHER_FETCHED_HOUR': start_offset
     };
 
     // Send to Pebble

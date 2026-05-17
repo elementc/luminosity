@@ -21,6 +21,8 @@ void init() {
       (WindowHandlers){.load = main_window_load, .unload = main_window_unload});
   window_stack_push(window.w_main, true);
 
+  load_weather_data_from_cache();
+
   // Register with Event Services
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   battery_state_service_subscribe(battery_callback);

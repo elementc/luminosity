@@ -85,6 +85,14 @@ void prv_update_display() {
   } else {
     bitmap_layer_set_background_color(window.bl_conditions, COLOR_CLEAR);
   }
+  effect_layer_remove_effect(window.el_conditions_inverter);
+  if (settings.Invert_Colors) {
+    effect_layer_add_effect(window.el_conditions_inverter,
+                            effect_invert_bw_only, NULL);
+  } else {
+    effect_layer_remove_effect(window.el_conditions_inverter);
+  }
+
   layer_mark_dirty(window.l_forecast_ring);
   layer_mark_dirty(window.l_wind_bearing_compass);
   layer_mark_dirty(text_layer_get_layer(window.tl_current_temperature));
