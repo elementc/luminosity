@@ -18,7 +18,7 @@
 #define ANALOG_RECT GRect(0, 0, w, h)
 #define CONDITION_RECT GRect(18, 18, 26, 26)
 #define BAT_RECT GRect(23, h - 38, 40, 20)
-#else
+#else // round
 #define NO_WEATHER_SKY_LINE_WIDTH 8
 #define DATE_LAYER_ANALOG GRect(10, h / 2 - 20, 60, 40)
 #define DATE_LAYER_DIGITAL GRect(0, h / 2 + 15, w, 30)

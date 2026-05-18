@@ -74,7 +74,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
       dict_find(iterator, MESSAGE_KEY_FORECAST_WIND_INTENSITY);
   Tuple* wind_speed_tuple = dict_find(iterator, MESSAGE_KEY_WIND_SPEED);
   Tuple* wind_bearing_tuple = dict_find(iterator, MESSAGE_KEY_WIND_BEARING);
-  Tuple* forecast_weather_fetched_hour =
+  Tuple* forecast_weather_fetched_hour_tuple =
       dict_find(iterator, MESSAGE_KEY_WEATHER_FETCHED_HOUR);
 
   // If all data is available, use it
@@ -112,7 +112,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
              conditions_tuple->value->cstring);
 
     weather_cache.weather_fetched_hour =
-        forecast_weather_fetched_hour->value->int32;
+        forecast_weather_fetched_hour_tuple->value->int32;
     APP_LOG(APP_LOG_LEVEL_INFO, "Received weather data for hour %d.",
             weather_cache.weather_fetched_hour);
 

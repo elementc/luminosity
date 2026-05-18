@@ -7,6 +7,18 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
   time_t temp = time(NULL);
   struct tm* tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
+  int skip_stale_hour_count = 0;
+
+  if (s_weather_ready && hour != weather_cache.weather_fetched_hour) {
+    skip_stale_hour_count = 24 - abs(hour - weather_cache.weather_fetched_hour);
+
+    if (skip_stale_hour_count != 0) {
+      APP_LOG(APP_LOG_LEVEL_WARNING,
+              "Rendering ring, but weather data is %d hour(s) stale. Currently "
+              "%d, data from %d.",
+              skip_stale_hour_count, hour, weather_cache.weather_fetched_hour);
+    }
+  }
 
 #ifdef PBL_RECT
 
@@ -42,29 +54,33 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
     }
     return;
   } else { // full set of rings
-    for (int i = 0; i < 24; i++) {
+
+    for (int i = 0; i < 24 - skip_stale_hour_count; i++) {
+
+      int iter_hour = ((24 - hour) + i) % 24;
 
       // outer (light + temp + clouds) ring
-      int temp =
-          (weather_cache.forecast_temp[((24 - hour) + i) % 24] - '0') + 2;
+      int temp = (weather_cache.forecast_temp[iter_hour] - '0') + 2;
       graphics_context_set_stroke_width(ctx, temp);
+
       if (i >= s_sunset || i < s_sunrise) {
         // night color pick
-        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[iter_hour] == '0')
           graphics_context_set_fill_color(ctx, COLOR_NIGHT);
-        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[iter_hour] == '1')
           graphics_context_set_fill_color(ctx, COLOR_NIGHT_PARTLY);
         else
           graphics_context_set_fill_color(ctx, COLOR_NIGHT_CLOUDY);
       } else {
         // day color pick
-        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[iter_hour] == '0')
           graphics_context_set_fill_color(ctx, COLOR_DAY);
-        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[iter_hour] == '1')
           graphics_context_set_fill_color(ctx, COLOR_DAY_PARTLY);
         else
           graphics_context_set_fill_color(ctx, COLOR_DAY_CLOUDY);
       }
+
       GPoint p1 = hours(i, w, h, 0);
       GPoint p2 = hours(i + 1, w, h, 0);
 
@@ -89,9 +105,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
           graphics_context_set_fill_color(ctx, COLOR_WIND_DAY);
         }
         int width =
-            (weather_cache.forecast_wind_intensity[((24 - hour) + i) % 24] -
-             '0') +
-            2;
+            (weather_cache.forecast_wind_intensity[iter_hour] - '0') + 2;
         p1 = hours(i, w, h, temp);
         p2 = hours(i + 1, w, h, temp);
         if (i < 3 || i >= 21) // bottom
@@ -107,7 +121,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
       } else {
         // c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
         if (i >= s_sunset || i < s_sunrise) {
-          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[iter_hour]) {
           case 'r':
             graphics_context_set_fill_color(ctx, COLOR_RAINY_NIGHT);
             break;
@@ -123,7 +137,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
             continue; // don't draw clear segments!
           }
         } else {
-          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[iter_hour]) {
           case 'r':
             graphics_context_set_fill_color(ctx, COLOR_RAINY_DAY);
             break;
@@ -140,9 +154,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
           }
         }
         int width =
-            (weather_cache.forecast_precip_intensity[((24 - hour) + i) % 24] -
-             '0') +
-            2;
+            (weather_cache.forecast_precip_intensity[iter_hour] - '0') + 2;
         p1 = hours(i, w, h, temp);
         p2 = hours(i + 1, w, h, temp);
         if (i < 3 || i >= 21) // bottom
@@ -157,6 +169,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
         graphics_fill_rect(ctx, r1, 0, GCornerNone);
       }
     }
+
     return;
   }
 
@@ -183,24 +196,27 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
 
     return;
   } else { // full set of rings
-    for (int i = 0; i < 24; i++) {
+
+    for (int i = 0; i < 24 - skip_stale_hour_count; i++) {
+
+      int iter_hour = ((24 - hour) + i) % 24;
+      
       // outer (light + temp + clouds) ring
-      int temp =
-          (weather_cache.forecast_temp[((24 - hour) + i) % 24] - '0') + 6;
+      int temp = (weather_cache.forecast_temp[iter_hour] - '0') + 6;
       graphics_context_set_stroke_width(ctx, temp);
       if (i >= s_sunset || i < s_sunrise) {
         // night color pick
-        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[iter_hour] == '0')
           graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
-        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[iter_hour] == '1')
           graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
         else
           graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
       } else {
         // day color pick
-        if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '0')
+        if (weather_cache.forecast_clouds[iter_hour] == '0')
           graphics_context_set_stroke_color(ctx, COLOR_DAY);
-        else if (weather_cache.forecast_clouds[((24 - hour) + i) % 24] == '1')
+        else if (weather_cache.forecast_clouds[iter_hour] == '1')
           graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
         else
           graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
@@ -218,9 +234,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
         } else {
           graphics_context_set_stroke_color(ctx, COLOR_WIND_DAY);
         }
-        int width =
-            (weather_cache.forecast_wind_intensity[((24 - hour) + i) % 24] -
-             '0');
+        int width = (weather_cache.forecast_wind_intensity[iter_hour] - '0');
         graphics_context_set_stroke_width(ctx, width);
         GRect r2 = grect_crop(fcst_bounds, temp + width / 2);
         graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
@@ -228,7 +242,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
         // precip data
         // c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
         if (i >= s_sunset || i < s_sunrise) {
-          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[iter_hour]) {
           case 'r':
             graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
             break;
@@ -244,7 +258,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
             continue; // don't draw clear segments!
           }
         } else {
-          switch (weather_cache.forecast_precip_type[((24 - hour) + i) % 24]) {
+          switch (weather_cache.forecast_precip_type[iter_hour]) {
           case 'r':
             graphics_context_set_stroke_color(ctx, COLOR_RAINY_DAY);
             break;
@@ -261,9 +275,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
           }
         }
         int width =
-            (weather_cache.forecast_precip_intensity[((24 - hour) + i) % 24] -
-             '0') +
-            4;
+            (weather_cache.forecast_precip_intensity[iter_hour] - '0') + 4;
         graphics_context_set_stroke_width(ctx, width);
         GRect r2 = grect_crop(fcst_bounds, temp + width / 2);
         graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
