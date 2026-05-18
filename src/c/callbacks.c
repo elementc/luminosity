@@ -16,7 +16,8 @@ void bluetooth_callback(bool connected) {
   layer_set_hidden(bitmap_layer_get_layer(window.bl_bt), connected);
 
   if (!connected) {
-    vibes_double_pulse();
+    // todo: restore when we can make this an option
+    //vibes_double_pulse();
   }
   effect_layer_remove_effect(window.el_bt_inverter);
   if (!connected && settings.Invert_Colors) {
