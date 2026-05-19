@@ -38,8 +38,8 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
         // day color pick
         graphics_context_set_fill_color(ctx, COLOR_DAY);
       }
-      GPoint p1 = hours(i, w, h, 0);
-      GPoint p2 = hours(i + 1, w, h, 0);
+      GPoint p1 = get_edge_point_for_hour(i, w, h, 0);
+      GPoint p2 = get_edge_point_for_hour(i + 1, w, h, 0);
       GRect r1;
       if (i < 3 || i >= 21) // bottom
         r1 = GRect(p2.x, p1.y - width, p1.x - p2.x, width);
@@ -81,8 +81,8 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
           graphics_context_set_fill_color(ctx, COLOR_DAY_CLOUDY);
       }
 
-      GPoint p1 = hours(i, w, h, 0);
-      GPoint p2 = hours(i + 1, w, h, 0);
+      GPoint p1 = get_edge_point_for_hour(i, w, h, 0);
+      GPoint p2 = get_edge_point_for_hour(i + 1, w, h, 0);
 
       GRect r1;
       if (i < 3 || i >= 21) // bottom
@@ -106,8 +106,8 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
         }
         int width =
             (weather_cache.forecast_wind_intensity[iter_hour] - '0') + 2;
-        p1 = hours(i, w, h, temp);
-        p2 = hours(i + 1, w, h, temp);
+        p1 = get_edge_point_for_hour(i, w, h, temp);
+        p2 = get_edge_point_for_hour(i + 1, w, h, temp);
         if (i < 3 || i >= 21) // bottom
           r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
         else if (i >= 3 && i < 9) // left side
@@ -155,8 +155,8 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
         }
         int width =
             (weather_cache.forecast_precip_intensity[iter_hour] - '0') + 2;
-        p1 = hours(i, w, h, temp);
-        p2 = hours(i + 1, w, h, temp);
+        p1 = get_edge_point_for_hour(i, w, h, temp);
+        p2 = get_edge_point_for_hour(i + 1, w, h, temp);
         if (i < 3 || i >= 21) // bottom
           r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
         else if (i >= 3 && i < 9) // left side

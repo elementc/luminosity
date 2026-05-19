@@ -224,16 +224,16 @@ void label_update_proc(Layer* layer, GContext* ctx) {
   graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
   graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES);
   for (int i = 0; i < 24; i++) {
-    // GPoint p = hours(i, bounds.size.w, bounds.size.h, 5);
-    GPoint p1 = hours(i, bounds.size.w, bounds.size.h, 17);
-    GPoint p2 = hours(i, bounds.size.w, bounds.size.h, 0);
+    // GPoint p = get_edge_point_for_hour(i, bounds.size.w, bounds.size.h, 5);
+    GPoint p1 = get_edge_point_for_hour(i, bounds.size.w, bounds.size.h, 17);
+    GPoint p2 = get_edge_point_for_hour(i, bounds.size.w, bounds.size.h, 0);
     graphics_draw_line(ctx, p1, p2);
   }
   time_t temp = time(NULL);
   struct tm* tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
-  GPoint p1 = hours(hour, bounds.size.w, bounds.size.h, 17);
-  GPoint p2 = hours(hour, bounds.size.w, bounds.size.h, 0);
+  GPoint p1 = get_edge_point_for_hour(hour, bounds.size.w, bounds.size.h, 17);
+  GPoint p2 = get_edge_point_for_hour(hour, bounds.size.w, bounds.size.h, 0);
   graphics_context_set_stroke_color(ctx, COLOR_24H_CURRENT);
   graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
   graphics_draw_line(ctx, p1, p2);

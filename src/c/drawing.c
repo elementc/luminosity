@@ -1,62 +1,62 @@
 #include "src/c/luminosity.h"
 
 #ifdef PBL_RECT
-// angle figurer for square pebbles
-GPoint hours(int hour, int w, int h, int b) {
-  w -= b * 2;
-  h -= b * 2;
+
+// for a given hour, and a given screen width and height, give the point at the screen's edge
+// corresponding to the hour in the luminosity 24h circular frame, padded inwards by an amount.
+GPoint get_edge_point_for_hour(int hour, int width, int height, int padding) {
+  width -= padding * 2;
+  height -= padding * 2;
   switch (hour % 24) {
   case 0:
-    return GPoint(3 * w / 6 + b, h + b); // 0
+    return GPoint(3 * width / 6 + padding, height + padding); // 0
   case 1:
-    return GPoint(2 * w / 6 + b, h + b); // 1
+    return GPoint(2 * width / 6 + padding, height + padding); // 1
   case 2:
-    return GPoint(1 * w / 6 + b, h + b); // 2
+    return GPoint(1 * width / 6 + padding, height + padding); // 2
   case 3:
-    return GPoint(b, 6 * h / 6 + b); // 3
+    return GPoint(padding, 6 * height / 6 + padding); // 3
   case 4:
-    return GPoint(b, 5 * h / 6 + b); // 4
+    return GPoint(padding, 5 * height / 6 + padding); // 4
   case 5:
-    return GPoint(b, 4 * h / 6 + b); // 5
+    return GPoint(padding, 4 * height / 6 + padding); // 5
   case 6:
-    return GPoint(b, 3 * h / 6 + b); // 6
+    return GPoint(padding, 3 * height / 6 + padding); // 6
   case 7:
-    return GPoint(b, 2 * h / 6 + b); // 7
+    return GPoint(padding, 2 * height / 6 + padding); // 7
   case 8:
-    return GPoint(b, 1 * h / 6 + b); // 8
+    return GPoint(padding, 1 * height / 6 + padding); // 8
   case 9:
-    return GPoint(b, b); // 9
+    return GPoint(padding, padding); // 9
   case 10:
-    return GPoint(1 * w / 6 + b, b); // 10
+    return GPoint(1 * width / 6 + padding, padding); // 10
   case 11:
-    return GPoint(2 * w / 6 + b, b); // 11
+    return GPoint(2 * width / 6 + padding, padding); // 11
   case 12:
-    return GPoint(3 * w / 6 + b, b); // 12
+    return GPoint(3 * width / 6 + padding, padding); // 12
   case 13:
-    return GPoint(4 * w / 6 + b, b); // 13
+    return GPoint(4 * width / 6 + padding, padding); // 13
   case 14:
-    return GPoint(5 * w / 6 + b, b); // 14
-
+    return GPoint(5 * width / 6 + padding, padding); // 14
   case 15:
-    return GPoint(w + b, b); // 15
-
+    return GPoint(width + padding, padding); // 15
   case 16:
-    return GPoint(w + b, 1 * h / 6 + b); // 16
+    return GPoint(width + padding, 1 * height / 6 + padding); // 16
   case 17:
-    return GPoint(w + b, 2 * h / 6 + b); // 17
+    return GPoint(width + padding, 2 * height / 6 + padding); // 17
   case 18:
-    return GPoint(w + b, 3 * h / 6 + b); // 18
+    return GPoint(width + padding, 3 * height / 6 + padding); // 18
   case 19:
-    return GPoint(w + b, 4 * h / 6 + b); // 19
+    return GPoint(width + padding, 4 * height / 6 + padding); // 19
   case 20:
-    return GPoint(w + b, 5 * h / 6 + b); // 20
+    return GPoint(width + padding, 5 * height / 6 + padding); // 20
   case 21:
-    return GPoint(w + b, h + b); // 21
+    return GPoint(width + padding, height + padding); // 21
   case 22:
-    return GPoint(5 * w / 6 + b, h + b); // 22
+    return GPoint(5 * width / 6 + padding, height + padding); // 22
   case 23:
   default:
-    return GPoint(4 * w / 6 + b, h + b); // 23
+    return GPoint(4 * width / 6 + padding, height + padding); // 23
   }
 }
 

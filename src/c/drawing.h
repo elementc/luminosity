@@ -3,7 +3,7 @@
 
 #ifdef PBL_RECT
 
-GPoint hours(int hour, int w, int h, int b);
+GPoint get_edge_point_for_hour(int hour, int width, int height, int padding);
 
 #else // round
 
