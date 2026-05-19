@@ -1,4 +1,5 @@
 #include "src/c/luminosity.h"
+ #include <sys/param.h>
 
 // Draw forecast ring
 void forecast_update_proc(Layer* layer, GContext* ctx) {
@@ -10,7 +11,7 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
   int skip_stale_hour_count = 0;
 
   if (s_weather_ready && hour != weather_cache.weather_fetched_hour) {
-    skip_stale_hour_count = 24 - abs(hour - weather_cache.weather_fetched_hour);
+    skip_stale_hour_count = MAX(MIN(abs(hour - weather_cache.weather_fetched_hour), 24), 0);
 
     if (skip_stale_hour_count != 0) {
       APP_LOG(APP_LOG_LEVEL_WARNING,
