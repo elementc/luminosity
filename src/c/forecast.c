@@ -54,8 +54,8 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
     }
     return;
   } else { // full set of rings
-
-    for (int i = 0; i < 24 - skip_stale_hour_count; i++) {
+    // todo: was 2 4- skip_stale_hour_count, is not correct
+    for (int i = 0; i < 24; i++) {
 
       int iter_hour = ((24 - hour) + i) % 24;
 
@@ -196,8 +196,8 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
 
     return;
   } else { // full set of rings
-
-    for (int i = 0; i < 24 - skip_stale_hour_count; i++) {
+    // todo: was 2 4- skip_stale_hour_count, is not correct
+    for (int i = 0; i < 24; i++) {
 
       int iter_hour = ((24 - hour) + i) % 24;
       
