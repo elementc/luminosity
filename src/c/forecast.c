@@ -1,6 +1,12 @@
 #include "src/c/luminosity.h"
  #include <sys/param.h>
 
+void draw_segment_rectangular(int base_hour, int thickness, int padding, GColor fill, GContext* ctx){
+
+
+
+}
+
 // Draw forecast ring
 void forecast_update_proc(Layer* layer, GContext* ctx) {
   GRect fcst_bounds = layer_get_unobstructed_bounds(layer);
