@@ -73,7 +73,9 @@ void update_strings_from_weather_cache() {
 
     snprintf(wind_speed_buffer, sizeof(wind_speed_buffer), "%d%s",
              weather_cache.wind_speed,
-             (settings.Knots ? "kts" : (settings.Metric ? "m/s" : "mph")));
+             (weather_cache.units_knots
+                  ? "kts"
+                  : (weather_cache.units_metric ? "m/s" : "mph")));
     if (window.tl_wind_speed) {
       text_layer_set_text(window.tl_wind_speed, wind_speed_buffer);
     }

@@ -304,16 +304,19 @@ function handleWeatherError() {
     console.log("Weather request errored out.");
 }
 
-function getWeather(lat, lon, units) {
+function getWeather(lat, lon, claySettings) {
+    claySettings = claySettings || {};
+    var metric = !!claySettings.CFG_CELSIUS;
+    var knots = !!claySettings.CFG_KNOTS;
 
-    // TODO: need to figure out units
     var current_channels = '&current=weather_code,temperature_2m,wind_speed_10m,wind_direction_10m,precipitation';
     var hourly_channels = '&hourly=temperature_2m,cloud_cover,precipitation,precipitation_probability,wind_speed_10m,weather_code';
-    var units = "&wind_speed_unit=mph&temperature_unit=fahrenheit"
-    var settings = '&timezone=auto&forecast_days=3';
+    var unit_params = '&temperature_unit=' + (metric ? 'celsius' : 'fahrenheit') +
+        '&wind_speed_unit=' + (knots ? 'kn' : (metric ? 'ms' : 'mph'));
+    var options = '&timezone=auto&forecast_days=3';
     var base = 'https://api.open-meteo.com/v1/forecast?';
     var location = 'latitude=' + lat + '&longitude=' + lon;
-    var url = base + location + hourly_channels + current_channels + units + settings;
+    var url = base + location + hourly_channels + current_channels + unit_params + options;
     console.log("Loading weather data from: " + url);
     var xhr = new XMLHttpRequest();
     xhr.onload = handleWeatherData;

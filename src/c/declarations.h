@@ -25,6 +25,11 @@ typedef struct {
   int temperature, temp_high, temp_low, wind_speed, wind_bearing;
 
   int weather_fetched_hour;
+
+  // Units the cached numbers are expressed in, so stale data is labeled
+  // correctly even after the user changes the setting offline.
+  bool units_metric;
+  bool units_knots;
 } WeatherCache;
 
 extern WeatherCache weather_cache;

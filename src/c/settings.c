@@ -29,7 +29,7 @@ void prv_save_settings() {
   prv_update_display();
 }
 
-#define CURRENT_WEATHER_STRUCT_VERSION 2
+#define CURRENT_WEATHER_STRUCT_VERSION 3
 
 void cache_weather_data() {
   if (!s_weather_ready) {

@@ -80,12 +80,11 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
   // If all data is available, use it
   if (temp_tuple) {
     APP_LOG(APP_LOG_LEVEL_INFO, "Inbox received weather data");
-    int reported_wind_speed = wind_speed_tuple->value->int32;
-    weather_cache.wind_speed =
-        (int)settings.Knots
-            ? (settings.Metric ? 1.94384f * (double)reported_wind_speed
-                               : 0.868976f * (double)reported_wind_speed)
-            : reported_wind_speed;
+    // Open-Meteo already converts to the units the phone requested, so store
+    // the values as-is and remember which units they are.
+    weather_cache.units_metric = settings.Metric;
+    weather_cache.units_knots = settings.Knots;
+    weather_cache.wind_speed = wind_speed_tuple->value->int32;
     weather_cache.wind_bearing = wind_bearing_tuple->value->int32;
 
     // Read out current temperature.
