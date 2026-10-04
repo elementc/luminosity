@@ -26,6 +26,8 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
   Tuple* cfg_knots_tuple = dict_find(iterator, MESSAGE_KEY_CFG_KNOTS);
   Tuple* cfg_enable_wind_ring_tuple =
       dict_find(iterator, MESSAGE_KEY_CFG_ENABLE_WIND_RING);
+  Tuple* cfg_vibrate_on_bt_disconnect_tuple =
+      dict_find(iterator, MESSAGE_KEY_CFG_VIBRATE_ON_BT_DISCONNECT);
   if (cfg_analog_tuple) {
     APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received settings.");
     bool new_Analog = cfg_analog_tuple->value->int32 == 1;
@@ -39,6 +41,9 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     settings.Invert_Colors = cfg_invert_colors_tuple->value->int32 == 1;
     settings.Knots = new_Knots;
     settings.enable_wind_ring = cfg_enable_wind_ring_tuple->value->int32 == 1;
+    settings.vibrate_on_bt_disconnect =
+        cfg_vibrate_on_bt_disconnect_tuple &&
+        cfg_vibrate_on_bt_disconnect_tuple->value->int32 == 1;
     prv_save_settings();
   }
 

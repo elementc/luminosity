@@ -15,9 +15,9 @@ void bluetooth_callback(bool connected) {
   // Show icon if disconnected
   layer_set_hidden(bitmap_layer_get_layer(window.bl_bt), connected);
 
-  if (!connected) {
-    // todo: restore when we can make this an option
-    //vibes_double_pulse();
+  if (!connected && settings.vibrate_on_bt_disconnect) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Bluetooth disconnected, vibrating.");
+    vibes_double_pulse();
   }
   effect_layer_remove_effect(window.el_bt_inverter);
   if (!connected && settings.Invert_Colors) {

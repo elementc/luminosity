@@ -10,6 +10,7 @@ void prv_default_settings() {
   settings.sunrise = 7;
   settings.sunset = 19;
   settings.enable_wind_ring = true;
+  settings.vibrate_on_bt_disconnect = false;
 }
 
 // Read settings from persistent storage

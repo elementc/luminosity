@@ -38,6 +38,7 @@
             "FORECAST_WIND_LOW",
             "CFG_ENABLE_WIND_RING",
             "CFG_INVERT_COLORS",
+            "CFG_VIBRATE_ON_BT_DISCONNECT",
             "WEATHER_FETCHED_HOUR"
         ],
         "projectType": "native",

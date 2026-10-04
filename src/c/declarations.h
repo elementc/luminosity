@@ -11,6 +11,7 @@ typedef struct {
   int sunrise;
   int sunset;
   bool enable_wind_ring;
+  bool vibrate_on_bt_disconnect;
 } ClaySettings;
 extern ClaySettings settings;
 

@@ -60,6 +60,21 @@ module.exports = [
         ]
     },
     {
+        "type": "section",
+        "items": [
+            {
+                "type": "heading",
+                "defaultValue": "Notifications"
+            },
+            {
+                "type": "toggle",
+                "messageKey": "CFG_VIBRATE_ON_BT_DISCONNECT",
+                "defaultValue": false,
+                "label": "Vibrate when Bluetooth disconnects"
+            }
+        ]
+    },
+    {
         "type":"section",
         "items": [
             {
@@ -70,7 +85,7 @@ module.exports = [
                 "type": "toggle",
                 "messageKey": "CFG_OVERRIDE_LOC",
                 "defaultValue": false,
-                "label": "Override detected Location"
+                "label": "Override detected location"
             },
             {
                 "type": "input",
