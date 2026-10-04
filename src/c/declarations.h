@@ -1,7 +1,8 @@
 #pragma once
 #include <pebble.h>
 
-#define HOURLY_WEATHER_DATA_BUFFER_LEN 36
+// Hourly forecast arrays hold 36 hours of data plus the NUL terminator.
+#define HOURLY_WEATHER_DATA_BUFFER_LEN 37
 
 typedef struct {
   bool Analog;

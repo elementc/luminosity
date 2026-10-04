@@ -8,6 +8,7 @@ GColor COLOR_STEPS;
 GColor COLOR_BATT;
 GColor COLOR_24H_LINES;
 GColor COLOR_24H_CURRENT;
+GColor COLOR_24H_FETCH;
 GColor COLOR_NIGHT;
 GColor COLOR_NIGHT_PARTLY;
 GColor COLOR_NIGHT_CLOUDY;
@@ -35,6 +36,7 @@ void update_colors() {
     COLOR_BATT = GColorBlack;
     COLOR_24H_LINES = GColorWhite;
     COLOR_24H_CURRENT = GColorRed;
+    COLOR_24H_FETCH = GColorDarkGray;
     COLOR_NIGHT = GColorIndigo;
     COLOR_NIGHT_PARTLY = GColorLavenderIndigo;
     COLOR_NIGHT_CLOUDY = GColorDarkGray;
@@ -59,6 +61,7 @@ void update_colors() {
     COLOR_BATT = GColorWhite;
     COLOR_24H_LINES = GColorBlack;
     COLOR_24H_CURRENT = GColorRed;
+    COLOR_24H_FETCH = GColorLightGray;
     COLOR_NIGHT = GColorIndigo;
     COLOR_NIGHT_PARTLY = GColorLavenderIndigo;
     COLOR_NIGHT_CLOUDY = GColorDarkGray;
@@ -86,6 +89,7 @@ void update_colors() {
     COLOR_BATT = GColorBlack;
     COLOR_24H_LINES = GColorWhite;
     COLOR_24H_CURRENT = GColorBlack;
+    COLOR_24H_FETCH = GColorDarkGray;
     COLOR_NIGHT = GColorBlack;
     COLOR_NIGHT_PARTLY = GColorBlack;
     COLOR_NIGHT_CLOUDY = GColorBlack;
@@ -110,6 +114,7 @@ void update_colors() {
     COLOR_BATT = GColorWhite;
     COLOR_24H_LINES = GColorBlack;
     COLOR_24H_CURRENT = GColorWhite;
+    COLOR_24H_FETCH = GColorLightGray;
     COLOR_NIGHT = GColorLightGray;
     COLOR_NIGHT_PARTLY = GColorLightGray;
     COLOR_NIGHT_CLOUDY = GColorLightGray;

@@ -237,6 +237,15 @@ void label_update_proc(Layer* layer, GContext* ctx) {
   graphics_context_set_stroke_color(ctx, COLOR_24H_CURRENT);
   graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
   graphics_draw_line(ctx, p1, p2);
+
+  if (s_weather_ready) {
+    int fetch = weather_cache.weather_fetched_hour;
+    GPoint f1 = get_edge_point_for_hour(fetch, bounds.size.w, bounds.size.h, 17);
+    GPoint f2 = get_edge_point_for_hour(fetch, bounds.size.w, bounds.size.h, 0);
+    graphics_context_set_stroke_color(ctx, COLOR_24H_FETCH);
+    graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
+    graphics_draw_line(ctx, f1, f2);
+  }
 #else
   GRect innerBounds = grect_crop(bounds, 18);
   graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
@@ -259,6 +268,18 @@ void label_update_proc(Layer* layer, GContext* ctx) {
   graphics_context_set_stroke_color(ctx, COLOR_24H_CURRENT);
   graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
   graphics_draw_line(ctx, p1, p2);
+
+  if (s_weather_ready) {
+    int fetch = weather_cache.weather_fetched_hour;
+    GRect fetchBounds = grect_crop(bounds, 20);
+    GPoint f1 = gpoint_from_polar(fetchBounds, GOvalScaleModeFillCircle,
+                                  hr_to_a(fetch));
+    GPoint f2 =
+        gpoint_from_polar(bounds, GOvalScaleModeFillCircle, hr_to_a(fetch));
+    graphics_context_set_stroke_color(ctx, COLOR_24H_FETCH);
+    graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
+    graphics_draw_line(ctx, f1, f2);
+  }
 #endif
 }
 

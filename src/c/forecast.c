@@ -1,5 +1,4 @@
 #include "src/c/luminosity.h"
-#include <sys/param.h>
 
 static bool is_night_hour(int hour) {
   return hour >= s_sunset || hour < s_sunrise;
@@ -78,18 +77,14 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
   time_t now = time(NULL);
   struct tm* tick_time = localtime(&now);
   int hour = tick_time->tm_hour;
-  int skip_stale_hour_count = 0;
+  int staleness = 0;
 
   if (s_weather_ready && hour != weather_cache.weather_fetched_hour) {
-    skip_stale_hour_count =
-        MAX(MIN(abs(hour - weather_cache.weather_fetched_hour), 24), 0);
-
-    if (skip_stale_hour_count != 0) {
-      APP_LOG(APP_LOG_LEVEL_WARNING,
-              "Rendering ring, but weather data is %d hour(s) stale. Currently "
-              "%d, data from %d.",
-              skip_stale_hour_count, hour, weather_cache.weather_fetched_hour);
-    }
+    staleness = ((hour - weather_cache.weather_fetched_hour) + 24) % 24;
+    APP_LOG(APP_LOG_LEVEL_WARNING,
+            "Rendering ring, but weather data is %d hour(s) stale. Currently "
+            "%d, data from %d.",
+            staleness, hour, weather_cache.weather_fetched_hour);
   }
 
   if (!s_space_ready) // if we have no space, we can do neither
@@ -104,9 +99,19 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
   }
 
   // full set of rings
-  // todo: was 2 4- skip_stale_hour_count, is not correct
+  // The forecast arrays start at the hour they were fetched. For each dial
+  // position, find the forecast for the next time that clock hour occurs: if
+  // it has already passed this cycle, reach one cycle further into the array,
+  // and leave the segment blank once we run out of cached hours.
+  int fetch_hour = weather_cache.weather_fetched_hour;
+  int data_len = strlen(weather_cache.forecast_temp);
+
   for (int ring_hour = 0; ring_hour < 24; ring_hour++) {
-    int data_hour = ((24 - hour) + ring_hour) % 24;
+    int age = ((ring_hour - fetch_hour) + 24) % 24;
+    int data_hour = (age >= staleness) ? age : age + 24;
+    if (data_hour >= data_len)
+      continue; // ran out of cached forecast
+
     bool night = is_night_hour(ring_hour);
 
     // outer (light + temp + clouds) ring

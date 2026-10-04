@@ -11,6 +11,7 @@ extern GColor COLOR_STEPS;
 extern GColor COLOR_BATT;
 extern GColor COLOR_24H_LINES;
 extern GColor COLOR_24H_CURRENT;
+extern GColor COLOR_24H_FETCH;
 extern GColor COLOR_NIGHT;
 extern GColor COLOR_NIGHT_PARTLY;
 extern GColor COLOR_NIGHT_CLOUDY;

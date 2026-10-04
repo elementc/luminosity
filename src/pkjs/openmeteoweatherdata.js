@@ -1,5 +1,10 @@
 var space = require('./space');
 
+// Hours of hourly forecast sent to the watch (the watch's buffer holds 36).
+// More than 24 lets the ring keep showing real forecast data for a few hours
+// after the watch has gone stale (offline).
+var FORECAST_HOURS = 36;
+
 var openmeteo_wmo_to_icon_day = {
     0: "clear-day", // clear
     1: "clear-day", // mainly clear
@@ -150,9 +155,9 @@ function build_temperature_forecast_str(json, start_offset) {
 
     var temp_str = "";
 
-    for (var i = start_offset; i < start_offset + 24; i++) {
-        // A flat forecast (delta 0) would divide by zero and yield "NaN",
-        // treat it as minimum intensity instead.
+    for (var i = start_offset; i < start_offset + FORECAST_HOURS; i++) {
+        // A flat forecast (delta 0) would divide by zero and yield "NaN";
+        // treat it as a uniform, minimum intensity instead.
         var intensity = 0;
         if (delta > 0) {
             var scale = json.hourly.temperature_2m[i] - low_temperature;
@@ -171,7 +176,7 @@ function build_temperature_forecast_str(json, start_offset) {
 function build_cloud_cover_forecast_str(json, start_offset) {
     var cloud_str = "";
 
-    for (var i = start_offset; i < start_offset + 24; i++) {
+    for (var i = start_offset; i < start_offset + FORECAST_HOURS; i++) {
         var coverage = json.hourly.cloud_cover[i];
         if (coverage < 40) {
             cloud_str += '0';
@@ -215,7 +220,7 @@ function build_wind_intensity_forecast_string(json, start_offset) {
 
     var wind_str = "";
 
-    for (var i = start_offset; i < start_offset + 24; i++) {
+    for (var i = start_offset; i < start_offset + FORECAST_HOURS; i++) {
         // A flat forecast (delta 0) would divide by zero and yield "NaN";
         // treat it as a uniform, minimum intensity instead.
         var intensity = 0;
@@ -237,7 +242,7 @@ function build_wind_intensity_forecast_string(json, start_offset) {
 function build_precip_type_forecast_string(json, start_offset) {
     var precip_type_str = "";
 
-    for (var i = start_offset; i < start_offset + 24; i++) {
+    for (var i = start_offset; i < start_offset + FORECAST_HOURS; i++) {
         var wmo_code = json.hourly.weather_code[i];
         precip_type_str += get_precip_type_for_wmo_code(wmo_code);
     }
@@ -249,7 +254,7 @@ function build_precip_type_forecast_string(json, start_offset) {
 function build_precip_intensity_forecast_string(json, start_offset) {
     var precip_intensity_str = "";
 
-    for (var i = start_offset; i < start_offset + 24; i++) {
+    for (var i = start_offset; i < start_offset + FORECAST_HOURS; i++) {
         var probability = json.hourly.precipitation_probability[i];
         if (probability != 0) {
             var intensity = json.hourly.precipitation[i];
