@@ -151,8 +151,13 @@ function build_temperature_forecast_str(json, start_offset) {
     var temp_str = "";
 
     for (var i = start_offset; i < start_offset + 24; i++) {
-        var scale = json.hourly.temperature_2m[i] - low_temperature;
-        var intensity = Math.round(scale / delta * 9);
+        // A flat forecast (delta 0) would divide by zero and yield "NaN",
+        // treat it as minimum intensity instead.
+        var intensity = 0;
+        if (delta > 0) {
+            var scale = json.hourly.temperature_2m[i] - low_temperature;
+            intensity = Math.round(scale / delta * 9);
+        }
 
         intensity = Math.min(9, intensity);
         intensity = Math.max(0, intensity);
@@ -211,8 +216,13 @@ function build_wind_intensity_forecast_string(json, start_offset) {
     var wind_str = "";
 
     for (var i = start_offset; i < start_offset + 24; i++) {
-        var scale = json.hourly.wind_speed_10m[i] - low_speed;
-        var intensity = Math.round(scale / delta * 9);
+        // A flat forecast (delta 0) would divide by zero and yield "NaN";
+        // treat it as a uniform, minimum intensity instead.
+        var intensity = 0;
+        if (delta > 0) {
+            var scale = json.hourly.wind_speed_10m[i] - low_speed;
+            intensity = Math.round(scale / delta * 9);
+        }
 
         intensity = Math.min(9, intensity);
         intensity = Math.max(0, intensity);
