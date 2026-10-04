@@ -66,28 +66,3 @@ GPoint get_edge_point_for_hour(int hour, int width, int height, int padding) {
 int hr_to_a(int hour) { return DEG_TO_TRIGANGLE(180 + (15 * hour)); }
 
 #endif
-
-// perimeter calc
-void calculate_perimeter(Layer* layer) {
-  window.r_bounds = layer_get_bounds(layer);
-  window.p_center = grect_center_point(&window.r_bounds);
-
-  int perimeter = (window.r_bounds.size.w + window.r_bounds.size.h) * 2;
-  step = perimeter / 60;
-  int topcount = window.r_bounds.size.w / step;
-  int sidecount = window.r_bounds.size.h / step;
-
-  int halftop = topcount / 2;
-
-  upperright = halftop;
-  lowerright = halftop + sidecount;
-  lowerleft = halftop + sidecount + topcount;
-  upperleft = halftop + sidecount + topcount + sidecount;
-}
-
-// Analog hands drawing
-GPoint rayFrom(int tri, int radius) {
-  GPoint ray = {window.p_center.x + sin_lookup(tri) * radius / TRIG_MAX_RATIO,
-                window.p_center.y - cos_lookup(tri) * radius / TRIG_MAX_RATIO};
-  return ray;
-}

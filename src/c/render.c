@@ -13,34 +13,20 @@ void main_window_load(Window* pw__window_to_load) {
 
   int w = window_bounds.size.w;
   int h = window_bounds.size.h;
-  int targetAnalogWidth = w - 18;
 
   GRect tempRect = TEMP_RECT;
   GRect forecastHighLowRect = FORECAST_HIGHLOW_RECT;
   GRect timeRect = TIME_RECT;
   GRect stepRect = STEP_RECT;
-  GRect analogRect = ANALOG_RECT;
   GRect conditionRect = CONDITION_RECT;
   GRect btRect = BT_RECT;
   GRect batteryRect = BAT_RECT;
-  GRect dateRect;
-  GTextAlignment dateAlign;
-  if (settings.Analog) {
-    dateRect = DATE_LAYER_ANALOG;
-    dateAlign = DATE_ALIGN_ANALOG;
-  } else {
-    dateRect = DATE_LAYER_DIGITAL;
-    dateAlign = DATE_ALIGN_DIGITAL;
-  }
+  GRect dateRect = DATE_LAYER_DIGITAL;
+  GTextAlignment dateAlign = DATE_ALIGN_DIGITAL;
 
   s_time_font = fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS);
   s_date_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
   s_steps_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
-
-  // Analog hands layer
-  window.l_analog = layer_create(analogRect);
-  calculate_perimeter(window.l_analog);
-  layer_set_update_proc(window.l_analog, analog_update_proc);
 
   // Conditions layer
   s_condition_icon_bitmap[0] =
@@ -177,15 +163,10 @@ void main_window_load(Window* pw__window_to_load) {
                   text_layer_get_layer(window.tl_steps));
 #endif
 
-  // Things that are different if you're analog vs digital
-  if (!settings.Analog)
-    layer_add_child(window_get_root_layer(pw__window_to_load),
-                    text_layer_get_layer(window.tl_time));
-  if (!settings.Analog)
-    layer_add_child(window_get_root_layer(pw__window_to_load),
-                    text_layer_get_layer(window.tl_battery));
-  if (settings.Analog)
-    layer_add_child(window_get_root_layer(pw__window_to_load), window.l_analog);
+  layer_add_child(window_get_root_layer(pw__window_to_load),
+                  text_layer_get_layer(window.tl_time));
+  layer_add_child(window_get_root_layer(pw__window_to_load),
+                  text_layer_get_layer(window.tl_battery));
 
   // Initialize the display
   apply_colors_to_layers();
@@ -211,7 +192,6 @@ void main_window_unload(Window* _) {
   text_layer_destroy(window.tl_high_low_forecast_temperature);
   text_layer_destroy(window.tl_wind_bearing);
   text_layer_destroy(window.tl_battery);
-  layer_destroy(window.l_analog);
   layer_destroy(window.l_forecast_ring);
   effect_layer_destroy(window.el_bt_inverter);
   effect_layer_destroy(window.el_conditions_inverter);
@@ -281,92 +261,6 @@ void label_update_proc(Layer* layer, GContext* ctx) {
     graphics_draw_line(ctx, f1, f2);
   }
 #endif
-}
-
-void analog_update_proc(Layer* layer, GContext* ctx) {
-
-  time_t temp = time(NULL);
-  struct tm* tick_time = localtime(&temp);
-
-  int minArmStart = (window.p_center.x - 20) * (100 - s_battery_level) / 100;
-  int hourArmStart = (window.p_center.x - 40) * (100 - s_battery_level) / 100;
-
-  int minArmEnd = window.p_center.x - 20;  // - minArmStart;
-  int hourArmEnd = window.p_center.x - 40; // - minArmStart;
-
-  int hourHand = (tick_time->tm_hour * 60 + tick_time->tm_min) /
-                 2; // 0 to 1440 = 0h to 24h
-  int hourAngle = DEG_TO_TRIGANGLE(hourHand);
-
-  int minHand = (tick_time->tm_min * 6);
-  int minAngle = DEG_TO_TRIGANGLE(minHand);
-
-#ifdef PBL_RECT
-  // Draw correct clock markings
-  {
-    for (int i = 0; i < 12; i++) {
-      GPoint pt1 = rayFrom(DEG_TO_TRIGANGLE(i * 30), window.p_center.x - 25);
-      GPoint pt2 = rayFrom(DEG_TO_TRIGANGLE(i * 30), window.p_center.x - 22);
-      bool big = i % 3 == 0;
-      // todo replace colors with palette
-      graphics_context_set_stroke_color(ctx, COLOR_WINDOW);
-      graphics_context_set_stroke_width(ctx, 2);
-      graphics_draw_line(ctx, pt1, pt2);
-      graphics_context_set_stroke_color(ctx,
-                                        big ? COLOR_TIME : COLOR_DAY_CLOUDY);
-      graphics_context_set_stroke_width(ctx, 1);
-      graphics_draw_line(ctx, pt1, pt2);
-    }
-  }
-#endif
-
-  // Draw hub shadow
-  graphics_context_set_fill_color(ctx, COLOR_WINDOW);
-  graphics_fill_circle(ctx, window.p_center, 3);
-
-  // Draw minute shadow
-  {
-    graphics_context_set_stroke_color(ctx, COLOR_TIME);
-    graphics_context_set_stroke_width(ctx, 3);
-    graphics_draw_line(ctx, window.p_center, rayFrom(minAngle, minArmStart));
-    graphics_context_set_stroke_width(ctx, 7);
-    graphics_draw_line(ctx, rayFrom(minAngle, minArmStart),
-                       rayFrom(minAngle, minArmEnd));
-  }
-
-  // Draw minute hand
-  {
-    graphics_context_set_stroke_color(ctx, COLOR_TIME);
-    graphics_context_set_stroke_width(ctx, 1);
-    graphics_draw_line(ctx, window.p_center, rayFrom(minAngle, minArmStart));
-    graphics_context_set_stroke_width(ctx, 5);
-    graphics_draw_line(ctx, rayFrom(minAngle, minArmStart),
-                       rayFrom(minAngle, minArmEnd));
-  }
-
-  // Draw hour shadow
-  {
-    graphics_context_set_stroke_color(ctx, COLOR_WINDOW);
-    graphics_context_set_stroke_width(ctx, 3);
-    graphics_draw_line(ctx, window.p_center, rayFrom(hourAngle, hourArmStart));
-    graphics_context_set_stroke_width(ctx, 9);
-    graphics_draw_line(ctx, rayFrom(hourAngle, hourArmStart),
-                       rayFrom(hourAngle, hourArmEnd));
-  }
-
-  // Draw hour hand
-  {
-    graphics_context_set_stroke_color(ctx, COLOR_TIME);
-    graphics_context_set_stroke_width(ctx, 1);
-    graphics_draw_line(ctx, window.p_center, rayFrom(hourAngle, hourArmStart));
-    graphics_context_set_stroke_width(ctx, 7);
-    graphics_draw_line(ctx, rayFrom(hourAngle, hourArmStart),
-                       rayFrom(hourAngle, hourArmEnd));
-  }
-
-  // Draw hub
-  graphics_context_set_fill_color(ctx, COLOR_TIME);
-  graphics_fill_circle(ctx, window.p_center, 2);
 }
 
 // set colors to layers and mark all dirty

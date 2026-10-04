@@ -5,7 +5,7 @@ module.exports = [
     },
     {
         "type": "text",
-        "defaultValue": "Digital or analog watchface that shows a 24 hour weather forecast."
+        "defaultValue": "Digital watchface that shows a 24 hour weather forecast."
     },
     {
         "type": "section",
@@ -13,12 +13,6 @@ module.exports = [
             {
                 "type": "heading",
                 "defaultValue": "Display"
-            },
-            {
-                "type": "toggle",
-                "messageKey": "CFG_ANALOG",
-                "defaultValue": false,
-                "label": "Use analog face instead of digital"
             },
             {
                 "type": "toggle",

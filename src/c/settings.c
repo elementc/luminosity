@@ -3,7 +3,6 @@
 
 // Initialize the default settings
 void prv_default_settings() {
-  settings.Analog = false;
   settings.Metric = false;
   settings.Knots = false;
   settings.Invert_Colors = false;
@@ -11,12 +10,21 @@ void prv_default_settings() {
   settings.sunset = 19;
   settings.enable_wind_ring = true;
   settings.vibrate_on_bt_disconnect = false;
+  settings.version = SETTINGS_VERSION;
 }
 
 // Read settings from persistent storage
 void prv_load_settings() {
   prv_default_settings();
-  persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+
+  int read = persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+  if (read != sizeof(settings) || settings.version != SETTINGS_VERSION) {
+    APP_LOG(APP_LOG_LEVEL_INFO,
+            "Stored settings missing or from an old version; using defaults.");
+    prv_default_settings();
+    persist_write_data(SETTINGS_KEY, &settings, sizeof(settings));
+  }
+
   s_sunrise = settings.sunrise;
   s_sunset = settings.sunset;
   update_colors();
@@ -29,8 +37,6 @@ void prv_save_settings() {
   apply_colors_to_layers();
   prv_update_display();
 }
-
-#define CURRENT_WEATHER_STRUCT_VERSION 3
 
 void cache_weather_data() {
   if (!s_weather_ready) {

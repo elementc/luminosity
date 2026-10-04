@@ -72,7 +72,7 @@ var clayConfig = require('./config');
 // Initialize Clay
 var clay = new Clay(clayConfig);
 
-var defaultSettings = { 'CFG_OVERRIDE_LOC': false, 'CFG_ANALOG': false, 'CFG_CELSIUS': false, 'CFG_KNOTS': false, 'CFG_INVERT_COLORS': false };
+var defaultSettings = { 'CFG_OVERRIDE_LOC': false, 'CFG_CELSIUS': false, 'CFG_KNOTS': false, 'CFG_INVERT_COLORS': false };
 var settings = {};
 
 function loadSettings() {

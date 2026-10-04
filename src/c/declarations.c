@@ -47,8 +47,6 @@ GBitmap* s_condition_icon_bitmap[10];
 
 _Static_assert(sizeof(condition_icons) == sizeof(s_condition_icon_bitmap));
 
-int upperright, lowerright, lowerleft, upperleft, step;
-
 /* strings for display */
 char date_buffer[] = "2999-99-99";
 char time_buffer[] = "00:00";

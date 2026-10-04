@@ -30,9 +30,6 @@ void battery_callback(BatteryChargeState state) {
   // Record the new battery level
   s_battery_level = state.charge_percent;
 
-  // Update meter
-  layer_mark_dirty(window.l_analog);
-
   // update text readout
   snprintf(s_battery_string, sizeof(s_battery_string), "%d%c", s_battery_level,
            '%');

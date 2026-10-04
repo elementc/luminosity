@@ -19,7 +19,6 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
   APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received message");
   bool need_weather_update = false;
 
-  Tuple* cfg_analog_tuple = dict_find(iterator, MESSAGE_KEY_CFG_ANALOG);
   Tuple* cfg_celsius_tuple = dict_find(iterator, MESSAGE_KEY_CFG_CELSIUS);
   Tuple* cfg_invert_colors_tuple =
       dict_find(iterator, MESSAGE_KEY_CFG_INVERT_COLORS);
@@ -28,15 +27,12 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
       dict_find(iterator, MESSAGE_KEY_CFG_ENABLE_WIND_RING);
   Tuple* cfg_vibrate_on_bt_disconnect_tuple =
       dict_find(iterator, MESSAGE_KEY_CFG_VIBRATE_ON_BT_DISCONNECT);
-  if (cfg_analog_tuple) {
+  if (cfg_celsius_tuple) {
     APP_LOG(APP_LOG_LEVEL_WARNING, "Inbox received settings.");
-    bool new_Analog = cfg_analog_tuple->value->int32 == 1;
     bool new_Metric = cfg_celsius_tuple->value->int32 == 1;
     bool new_Knots = cfg_knots_tuple->value->int32 == 1;
-    if (settings.Analog != new_Analog || settings.Metric != new_Metric ||
-        settings.Knots != new_Knots)
+    if (settings.Metric != new_Metric || settings.Knots != new_Knots)
       need_weather_update = true;
-    settings.Analog = new_Analog;
     settings.Metric = new_Metric;
     settings.Invert_Colors = cfg_invert_colors_tuple->value->int32 == 1;
     settings.Knots = new_Knots;
@@ -127,7 +123,7 @@ void inbox_received_callback(DictionaryIterator* iterator, void* context) {
     prv_update_display();
   }
 
-  if ((cfg_analog_tuple && !temp_tuple) || need_weather_update) {
+  if ((cfg_celsius_tuple && !temp_tuple) || need_weather_update) {
     APP_LOG(APP_LOG_LEVEL_WARNING, "Updated settings. Need new weather.");
     send_message();
   }

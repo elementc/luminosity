@@ -5,7 +5,6 @@
 #define HOURLY_WEATHER_DATA_BUFFER_LEN 37
 
 typedef struct {
-  bool Analog;
   bool Metric;
   bool Knots;
   bool Invert_Colors;
@@ -13,6 +12,7 @@ typedef struct {
   int sunset;
   bool enable_wind_ring;
   bool vibrate_on_bt_disconnect;
+  uint8_t version;
 } ClaySettings;
 extern ClaySettings settings;
 
@@ -37,12 +37,6 @@ typedef struct {
 extern WeatherCache weather_cache;
 
 typedef struct {
-  /* Geometry */
-  GRect r_bounds; /* This may only be used by the analog layer, actually, in the
-                     calculate_perimeter function, and therefore deletable if we
-                     delete that feature. */
-  GPoint p_center;
-
   /* Window */
   Window* w_main;
 
@@ -65,7 +59,6 @@ typedef struct {
   EffectLayer* el_bt_inverter;
 
   /* Layers for rendering */
-  Layer* l_analog;
   Layer* l_24hour;
   Layer* l_forecast_ring;
   Layer* l_wind_bearing_compass;
@@ -104,11 +97,13 @@ extern char* condition_icons[];
 
 extern GBitmap* s_condition_icon_bitmap[10];
 
-extern int upperright, lowerright, lowerleft, upperleft, step;
-
-// Persistent storage key
+// Persistent storage keys, and the schema version of each persisted struct.
+// Bump a version when the corresponding struct's layout or semantics change;
+// stored data with a mismatched version is discarded and rebuilt with defaults.
 #define SETTINGS_KEY 1
 #define WEATHER_CACHE_KEY 2
+#define SETTINGS_VERSION 1
+#define CURRENT_WEATHER_STRUCT_VERSION 3
 
 extern char date_buffer[HOURLY_WEATHER_DATA_BUFFER_LEN]; // todo: different,
                                                          // appropriate, len

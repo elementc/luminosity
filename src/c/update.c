@@ -13,15 +13,8 @@ bool update_buffers() {
   }
   text_layer_set_text(window.tl_time, time_buffer);
 
-  if (settings.Analog)
-    layer_mark_dirty(window.l_analog);
-
   // Show the date
-
-  if (settings.Analog)
-    strftime(date_buffer, sizeof(date_buffer), "%a\n%b %e", tick_time);
-  else
-    strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
+  strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
   text_layer_set_text(window.tl_date, date_buffer);
   APP_LOG(APP_LOG_LEVEL_INFO, "Updated time.");
   return tick_time->tm_min % 30 == 0;
@@ -43,19 +36,10 @@ void prv_update_display() {
   int w = window_bounds.size.w;
   int h = window_bounds.size.h;
 
-  if (settings.Analog) {
-    layer_remove_from_parent(text_layer_get_layer(window.tl_time));
-    layer_remove_from_parent(text_layer_get_layer(window.tl_battery));
-    layer_add_child(winrl, window.l_analog);
-    layer_set_frame(text_layer_get_layer(window.tl_date), DATE_LAYER_ANALOG);
-    text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_ANALOG);
-  } else {
-    layer_add_child(winrl, text_layer_get_layer(window.tl_time));
-    layer_add_child(winrl, text_layer_get_layer(window.tl_battery));
-    layer_remove_from_parent(window.l_analog);
-    layer_set_frame(text_layer_get_layer(window.tl_date), DATE_LAYER_DIGITAL);
-    text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_DIGITAL);
-  }
+  layer_add_child(winrl, text_layer_get_layer(window.tl_time));
+  layer_add_child(winrl, text_layer_get_layer(window.tl_battery));
+  layer_set_frame(text_layer_get_layer(window.tl_date), DATE_LAYER_DIGITAL);
+  text_layer_set_text_alignment(window.tl_date, DATE_ALIGN_DIGITAL);
 
   if (forecast_ring_in_wind_mode) {
     layer_add_child(winrl, text_layer_get_layer(window.tl_wind_speed));
