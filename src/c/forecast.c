@@ -1,23 +1,88 @@
 #include "src/c/luminosity.h"
- #include <sys/param.h>
+#include <sys/param.h>
 
-void draw_segment_rectangular(int base_hour, int thickness, int padding, GColor fill, GContext* ctx){
+static bool is_night_hour(int hour) {
+  return hour >= s_sunset || hour < s_sunrise;
+}
 
+static GColor sky_color(bool is_night, char clouds) {
+  if (is_night) {
+    if (clouds == '0')
+      return COLOR_NIGHT;
+    if (clouds == '1')
+      return COLOR_NIGHT_PARTLY;
+    return COLOR_NIGHT_CLOUDY;
+  }
+  if (clouds == '0')
+    return COLOR_DAY;
+  if (clouds == '1')
+    return COLOR_DAY_PARTLY;
+  return COLOR_DAY_CLOUDY;
+}
 
+static GColor wind_color(bool is_night) {
+  return is_night ? COLOR_WIND_NIGHT : COLOR_WIND_DAY;
+}
 
+static bool precip_color(bool is_night, char type, GColor* out) {
+  switch (type) {
+  case 'r':
+    *out = is_night ? COLOR_RAINY_NIGHT : COLOR_RAINY_DAY;
+    return true;
+  case 's':
+    *out = is_night ? COLOR_SNOWY_NIGHT : COLOR_SNOWY_DAY;
+    return true;
+  case 'l':
+    *out = is_night ? COLOR_SLEETY_NIGHT : COLOR_SLEETY_DAY;
+    return true;
+  default:
+    return false;
+  }
+}
+
+// Draw one hour's slice of a ring, `offset` pixels in from the edge and
+// `thickness` pixels deep. Rects use filled rectangles, round screens use arcs.
+static void draw_ring_segment(GContext* ctx, GRect bounds, int hour, int offset,
+                              int thickness, GColor color) {
+#ifdef PBL_RECT
+  graphics_context_set_fill_color(ctx, color);
+  GPoint p1 =
+      get_edge_point_for_hour(hour, bounds.size.w, bounds.size.h, offset);
+  GPoint p2 =
+      get_edge_point_for_hour(hour + 1, bounds.size.w, bounds.size.h, offset);
+
+  GRect segment;
+  if (hour < 3 || hour >= 21) // bottom
+    segment = GRect(p2.x, p1.y - thickness, p1.x - p2.x, thickness);
+  else if (hour < 9) // left
+    segment = GRect(p1.x, p1.y, thickness, p2.y - p1.y);
+  else if (hour < 15) // top
+    segment = GRect(p1.x, p1.y, p2.x - p1.x, thickness);
+  else // right
+    segment = GRect(p1.x - thickness, p1.y, thickness, p2.y - p1.y);
+
+  graphics_fill_rect(ctx, segment, 0, GCornerNone);
+#else
+  graphics_context_set_stroke_color(ctx, color);
+  graphics_context_set_stroke_width(ctx, thickness);
+  GRect ring = grect_crop(bounds, offset + thickness / 2);
+  graphics_draw_arc(ctx, ring, GOvalScaleModeFitCircle, hr_to_a(hour),
+                    hr_to_a(hour + 1));
+#endif
 }
 
 // Draw forecast ring
 void forecast_update_proc(Layer* layer, GContext* ctx) {
-  GRect fcst_bounds = layer_get_unobstructed_bounds(layer);
+  GRect bounds = layer_get_unobstructed_bounds(layer);
 
-  time_t temp = time(NULL);
-  struct tm* tick_time = localtime(&temp);
+  time_t now = time(NULL);
+  struct tm* tick_time = localtime(&now);
   int hour = tick_time->tm_hour;
   int skip_stale_hour_count = 0;
 
   if (s_weather_ready && hour != weather_cache.weather_fetched_hour) {
-    skip_stale_hour_count = MAX(MIN(abs(hour - weather_cache.weather_fetched_hour), 24), 0);
+    skip_stale_hour_count =
+        MAX(MIN(abs(hour - weather_cache.weather_fetched_hour), 24), 0);
 
     if (skip_stale_hour_count != 0) {
       APP_LOG(APP_LOG_LEVEL_WARNING,
@@ -27,269 +92,48 @@ void forecast_update_proc(Layer* layer, GContext* ctx) {
     }
   }
 
-#ifdef PBL_RECT
-
-  int w = fcst_bounds.size.w;
-  int h = fcst_bounds.size.h;
   if (!s_space_ready) // if we have no space, we can do neither
     return;
-  else if (!s_weather_ready &&
-           s_space_ready) { // if we have space only, we can draw just the
-                            // sunrise/sunset ring
-    for (int i = 0; i < 24; i++) {
-      int width = NO_WEATHER_SKY_LINE_WIDTH;
-      if (i >= s_sunset || i < s_sunrise) {
-        // night color pick
-        graphics_context_set_fill_color(ctx, COLOR_NIGHT);
-      } else {
-        // day color pick
-        graphics_context_set_fill_color(ctx, COLOR_DAY);
-      }
-      GPoint p1 = get_edge_point_for_hour(i, w, h, 0);
-      GPoint p2 = get_edge_point_for_hour(i + 1, w, h, 0);
-      GRect r1;
-      if (i < 3 || i >= 21) // bottom
-        r1 = GRect(p2.x, p1.y - width, p1.x - p2.x, width);
-      else if (i >= 3 && i < 9) // left side
-        r1 = GRect(p1.x, p1.y, width, p2.y - p1.y);
-      else if (i >= 9 && i < 15) // top
-        r1 = GRect(p1.x, p1.y, p2.x - p1.x, width);
-      else // right side
-        r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
 
-      graphics_fill_rect(ctx, r1, 0, GCornerNone);
-    }
-    return;
-  } else { // full set of rings
-    // todo: was 2 4- skip_stale_hour_count, is not correct
-    for (int i = 0; i < 24; i++) {
-
-      int iter_hour = ((24 - hour) + i) % 24;
-
-      // outer (light + temp + clouds) ring
-      int temp = (weather_cache.forecast_temp[iter_hour] - '0') + 2;
-      graphics_context_set_stroke_width(ctx, temp);
-
-      if (i >= s_sunset || i < s_sunrise) {
-        // night color pick
-        if (weather_cache.forecast_clouds[iter_hour] == '0')
-          graphics_context_set_fill_color(ctx, COLOR_NIGHT);
-        else if (weather_cache.forecast_clouds[iter_hour] == '1')
-          graphics_context_set_fill_color(ctx, COLOR_NIGHT_PARTLY);
-        else
-          graphics_context_set_fill_color(ctx, COLOR_NIGHT_CLOUDY);
-      } else {
-        // day color pick
-        if (weather_cache.forecast_clouds[iter_hour] == '0')
-          graphics_context_set_fill_color(ctx, COLOR_DAY);
-        else if (weather_cache.forecast_clouds[iter_hour] == '1')
-          graphics_context_set_fill_color(ctx, COLOR_DAY_PARTLY);
-        else
-          graphics_context_set_fill_color(ctx, COLOR_DAY_CLOUDY);
-      }
-
-      GPoint p1 = get_edge_point_for_hour(i, w, h, 0);
-      GPoint p2 = get_edge_point_for_hour(i + 1, w, h, 0);
-
-      GRect r1;
-      if (i < 3 || i >= 21) // bottom
-        r1 = GRect(p2.x, p1.y - temp, p1.x - p2.x, temp);
-      else if (i >= 3 && i < 9) // left side
-        r1 = GRect(p1.x, p1.y, temp, p2.y - p1.y);
-      else if (i >= 9 && i < 15) // top
-        r1 = GRect(p1.x, p1.y, p2.x - p1.x, temp);
-      else // right side
-        r1 = GRect(p1.x - temp, p1.y, temp, p2.y - p1.y);
-
-      graphics_fill_rect(ctx, r1, 0, GCornerNone);
-
-      // inner (precip) ring
-      if (forecast_ring_in_wind_mode) {
-        // write method for displaying wind data
-        if (i >= s_sunset || i < s_sunrise) {
-          graphics_context_set_fill_color(ctx, COLOR_WIND_NIGHT);
-        } else {
-          graphics_context_set_fill_color(ctx, COLOR_WIND_DAY);
-        }
-        int width =
-            (weather_cache.forecast_wind_intensity[iter_hour] - '0') + 2;
-        p1 = get_edge_point_for_hour(i, w, h, temp);
-        p2 = get_edge_point_for_hour(i + 1, w, h, temp);
-        if (i < 3 || i >= 21) // bottom
-          r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
-        else if (i >= 3 && i < 9) // left side
-          r1 = GRect(p1.x, p1.y, width, p2.y - p1.y);
-        else if (i >= 9 && i < 15) // top
-          r1 = GRect(p1.x, p1.y, p2.x - p1.x, width);
-        else // right side
-          r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
-
-        graphics_fill_rect(ctx, r1, 0, GCornerNone);
-      } else {
-        // c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-        if (i >= s_sunset || i < s_sunrise) {
-          switch (weather_cache.forecast_precip_type[iter_hour]) {
-          case 'r':
-            graphics_context_set_fill_color(ctx, COLOR_RAINY_NIGHT);
-            break;
-          case 's':
-            graphics_context_set_fill_color(ctx, COLOR_SNOWY_NIGHT);
-            break;
-          case 'l':
-            graphics_context_set_fill_color(ctx, COLOR_SLEETY_NIGHT);
-            break;
-          case '_':
-          case '?':
-          default:
-            continue; // don't draw clear segments!
-          }
-        } else {
-          switch (weather_cache.forecast_precip_type[iter_hour]) {
-          case 'r':
-            graphics_context_set_fill_color(ctx, COLOR_RAINY_DAY);
-            break;
-          case 's':
-            graphics_context_set_fill_color(ctx, COLOR_SNOWY_DAY);
-            break;
-          case 'l':
-            graphics_context_set_fill_color(ctx, COLOR_SLEETY_DAY);
-            break;
-          case '_':
-          case '?':
-          default:
-            continue; // don't draw clear segments!
-          }
-        }
-        int width =
-            (weather_cache.forecast_precip_intensity[iter_hour] - '0') + 2;
-        p1 = get_edge_point_for_hour(i, w, h, temp);
-        p2 = get_edge_point_for_hour(i + 1, w, h, temp);
-        if (i < 3 || i >= 21) // bottom
-          r1 = GRect(p2.x, (p1.y - width), p1.x - p2.x, width);
-        else if (i >= 3 && i < 9) // left side
-          r1 = GRect(p1.x, p1.y, width, p2.y - p1.y);
-        else if (i >= 9 && i < 15) // top
-          r1 = GRect(p1.x, p1.y, p2.x - p1.x, width);
-        else // right side
-          r1 = GRect(p1.x - width, p1.y, width, p2.y - p1.y);
-
-        graphics_fill_rect(ctx, r1, 0, GCornerNone);
-      }
-    }
-
-    return;
-  }
-
-#else
-
-  if (!s_space_ready) // if we have no space, we can do neither
-    return;
-  else if (!s_weather_ready &&
-           s_space_ready) { // if we have space only, we can draw just the
-                            // sunrise/sunset ring
-    GRect bounds = grect_crop(fcst_bounds, NO_WEATHER_SKY_LINE_WIDTH / 2);
-    for (int i = 0; i < 24; i++) {
-      if (i >= s_sunset || i < s_sunrise) {
-        // night color pick
-        graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
-      } else {
-        // day color pick
-        graphics_context_set_stroke_color(ctx, COLOR_DAY);
-      }
-      graphics_context_set_stroke_width(ctx, NO_WEATHER_SKY_LINE_WIDTH);
-      graphics_draw_arc(ctx, bounds, GOvalScaleModeFitCircle, hr_to_a(i),
-                        hr_to_a(i + 1));
-    }
-
-    return;
-  } else { // full set of rings
-    // todo: was 2 4- skip_stale_hour_count, is not correct
-    for (int i = 0; i < 24; i++) {
-
-      int iter_hour = ((24 - hour) + i) % 24;
-      
-      // outer (light + temp + clouds) ring
-      int temp = (weather_cache.forecast_temp[iter_hour] - '0') + 6;
-      graphics_context_set_stroke_width(ctx, temp);
-      if (i >= s_sunset || i < s_sunrise) {
-        // night color pick
-        if (weather_cache.forecast_clouds[iter_hour] == '0')
-          graphics_context_set_stroke_color(ctx, COLOR_NIGHT);
-        else if (weather_cache.forecast_clouds[iter_hour] == '1')
-          graphics_context_set_stroke_color(ctx, COLOR_NIGHT_PARTLY);
-        else
-          graphics_context_set_stroke_color(ctx, COLOR_NIGHT_CLOUDY);
-      } else {
-        // day color pick
-        if (weather_cache.forecast_clouds[iter_hour] == '0')
-          graphics_context_set_stroke_color(ctx, COLOR_DAY);
-        else if (weather_cache.forecast_clouds[iter_hour] == '1')
-          graphics_context_set_stroke_color(ctx, COLOR_DAY_PARTLY);
-        else
-          graphics_context_set_stroke_color(ctx, COLOR_DAY_CLOUDY);
-      }
-      int p1 = hr_to_a(i);
-      int p2 = hr_to_a(i + 1);
-      GRect r1 = grect_crop(fcst_bounds, temp / 2);
-      graphics_draw_arc(ctx, r1, GOvalScaleModeFitCircle, p1, p2);
-
-      // inner ring
-      if (forecast_ring_in_wind_mode) {
-        // write method for displaying wind data
-        if (i >= s_sunset || i < s_sunrise) {
-          graphics_context_set_stroke_color(ctx, COLOR_WIND_NIGHT);
-        } else {
-          graphics_context_set_stroke_color(ctx, COLOR_WIND_DAY);
-        }
-        int width = (weather_cache.forecast_wind_intensity[iter_hour] - '0');
-        graphics_context_set_stroke_width(ctx, width);
-        GRect r2 = grect_crop(fcst_bounds, temp + width / 2);
-        graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
-      } else {
-        // precip data
-        // c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
-        if (i >= s_sunset || i < s_sunrise) {
-          switch (weather_cache.forecast_precip_type[iter_hour]) {
-          case 'r':
-            graphics_context_set_stroke_color(ctx, COLOR_RAINY_NIGHT);
-            break;
-          case 's':
-            graphics_context_set_stroke_color(ctx, COLOR_SNOWY_NIGHT);
-            break;
-          case 'l':
-            graphics_context_set_stroke_color(ctx, COLOR_SLEETY_NIGHT);
-            break;
-          case '_':
-          case '?':
-          default:
-            continue; // don't draw clear segments!
-          }
-        } else {
-          switch (weather_cache.forecast_precip_type[iter_hour]) {
-          case 'r':
-            graphics_context_set_stroke_color(ctx, COLOR_RAINY_DAY);
-            break;
-          case 's':
-            graphics_context_set_stroke_color(ctx, COLOR_SNOWY_DAY);
-            break;
-          case 'l':
-            graphics_context_set_stroke_color(ctx, COLOR_SLEETY_DAY);
-            break;
-          case '_':
-          case '?':
-          default:
-            continue; // don't draw clear segments!
-          }
-        }
-        int width =
-            (weather_cache.forecast_precip_intensity[iter_hour] - '0') + 4;
-        graphics_context_set_stroke_width(ctx, width);
-        GRect r2 = grect_crop(fcst_bounds, temp + width / 2);
-        graphics_draw_arc(ctx, r2, GOvalScaleModeFitCircle, p1, p2);
-      }
+  if (!s_weather_ready) { // with space only, draw just the sunrise/sunset ring
+    for (int ring_hour = 0; ring_hour < 24; ring_hour++) {
+      draw_ring_segment(ctx, bounds, ring_hour, 0, NO_WEATHER_SKY_LINE_WIDTH,
+                        is_night_hour(ring_hour) ? COLOR_NIGHT : COLOR_DAY);
     }
     return;
   }
 
-#endif
+  // full set of rings
+  // todo: was 2 4- skip_stale_hour_count, is not correct
+  for (int ring_hour = 0; ring_hour < 24; ring_hour++) {
+    int data_hour = ((24 - hour) + ring_hour) % 24;
+    bool night = is_night_hour(ring_hour);
+
+    // outer (light + temp + clouds) ring
+    int sky_thickness =
+        (weather_cache.forecast_temp[data_hour] - '0') + SKY_THICKNESS_BASE;
+    draw_ring_segment(
+        ctx, bounds, ring_hour, 0, sky_thickness,
+        sky_color(night, weather_cache.forecast_clouds[data_hour]));
+
+    // inner (precip or wind) ring
+    if (forecast_ring_in_wind_mode) {
+      int wind_thickness =
+          (weather_cache.forecast_wind_intensity[data_hour] - '0') +
+          WIND_THICKNESS_BASE;
+      draw_ring_segment(ctx, bounds, ring_hour, sky_thickness, wind_thickness,
+                        wind_color(night));
+    } else {
+      // c, r, s, p, _, ? = cloudy, rain, snow, partly cloudy, clear, unknown
+      GColor precip;
+      if (!precip_color(night, weather_cache.forecast_precip_type[data_hour],
+                        &precip))
+        continue; // don't draw clear segments!
+      int precip_thickness =
+          (weather_cache.forecast_precip_intensity[data_hour] - '0') +
+          PRECIP_THICKNESS_BASE;
+      draw_ring_segment(ctx, bounds, ring_hour, sky_thickness,
+                        precip_thickness, precip);
+    }
+  }
 }
