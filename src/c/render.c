@@ -212,13 +212,10 @@ void label_update_proc(Layer* layer, GContext* ctx) {
   time_t temp = time(NULL);
   struct tm* tick_time = localtime(&temp);
   int hour = tick_time->tm_hour;
-  GPoint p1 = get_edge_point_for_hour(hour, bounds.size.w, bounds.size.h, 17);
-  GPoint p2 = get_edge_point_for_hour(hour, bounds.size.w, bounds.size.h, 0);
-  graphics_context_set_stroke_color(ctx, COLOR_24H_CURRENT);
-  graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
-  graphics_draw_line(ctx, p1, p2);
 
   if (s_weather_ready) {
+    // First, draw a grey line at the hour the weather was last fetched.
+    // Do this before the current-hour line, so that this one is obscured when data is fresh.
     int fetch = weather_cache.weather_fetched_hour;
     GPoint f1 = get_edge_point_for_hour(fetch, bounds.size.w, bounds.size.h, 17);
     GPoint f2 = get_edge_point_for_hour(fetch, bounds.size.w, bounds.size.h, 0);
@@ -226,6 +223,15 @@ void label_update_proc(Layer* layer, GContext* ctx) {
     graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
     graphics_draw_line(ctx, f1, f2);
   }
+
+  // Finally, draw a line at the current hour.
+  GPoint p1 = get_edge_point_for_hour(hour, bounds.size.w, bounds.size.h, 17);
+  GPoint p2 = get_edge_point_for_hour(hour, bounds.size.w, bounds.size.h, 0);
+  graphics_context_set_stroke_color(ctx, COLOR_24H_CURRENT);
+  graphics_context_set_stroke_width(ctx, WIDTH_24H_LINES_CURRENT);
+  graphics_draw_line(ctx, p1, p2);
+
+
 #else
   GRect innerBounds = grect_crop(bounds, 18);
   graphics_context_set_stroke_color(ctx, COLOR_24H_LINES);
