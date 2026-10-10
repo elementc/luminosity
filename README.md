@@ -1,5 +1,5 @@
 # Luminosity
-Digital or analog watchface that shows an eminently glanceable 24 hour weather forecast. Steps and bluetooth connection alerts, too!
+Digital watchface that shows an eminently glanceable 24 hour weather forecast. Steps and bluetooth connection alerts, too!
 
 ![face preview](/animated.gif?raw=true)
 
@@ -12,7 +12,9 @@ A second layer appears on the ring if there will be precipitation at that hour- 
 Thickness of the sky ring indicates temperature- the widest part is the hottest part of the day, and the thinnest part is the coolest part of the day.
 Thickness of the precipitation ring indicates intensity- a short, thick band of blue means a lot of rain in a short time. A thin, long band of teal means a long, slow sleety drizzle.
 
-Bluetooth connectivity alerts are present. Feel free to email with feature requests- casey@spacewalkpublishing.us.
+You can optionally have the watch vibrate when Bluetooth disconnects.
+
+Feel free to email with feature requests: casey@spacewalkpublishing.us.
 
 Weather data powered by [openmeteo](https://open-meteo.com/).
 
